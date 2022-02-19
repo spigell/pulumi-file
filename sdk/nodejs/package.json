@@ -1,9 +1,13 @@
 {
-    "name": "@pulumi/xyz",
+    "name": "@pulumi/file",
     "version": "${VERSION}",
+    "keywords": [
+        "pulumi",
+        "utils"
+    ],
     "scripts": {
         "build": "tsc",
-        "install": "node scripts/install-pulumi-plugin.js resource xyz ${VERSION}"
+        "install": "node scripts/install-pulumi-plugin.js resource file ${VERSION}"
     },
     "dependencies": {
         "@pulumi/pulumi": "^3.0.0"
@@ -12,6 +16,7 @@
         "typescript": "^4.3.5"
     },
     "pulumi": {
-        "resource": true
+        "resource": true,
+        "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/download/v0.0.1"
     }
 }

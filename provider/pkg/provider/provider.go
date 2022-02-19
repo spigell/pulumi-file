@@ -17,9 +17,8 @@ package provider
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"time"
 
+	"github.com/golang/glog"
 	"github.com/pulumi/pulumi/pkg/v3/resource/provider"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
@@ -29,9 +28,11 @@ import (
 	pulumirpc "github.com/pulumi/pulumi/sdk/v3/proto/go"
 
 	pbempty "github.com/golang/protobuf/ptypes/empty"
+
+	"github.com/spigell/pulumi-file/provider/pkg/resources"
 )
 
-type xyzProvider struct {
+type fileProvider struct {
 	host    *provider.HostClient
 	name    string
 	version string
@@ -39,7 +40,7 @@ type xyzProvider struct {
 
 func makeProvider(host *provider.HostClient, name, version string) (pulumirpc.ResourceProviderServer, error) {
 	// Return the new provider
-	return &xyzProvider{
+	return &fileProvider{
 		host:    host,
 		name:    name,
 		version: version,
@@ -47,39 +48,42 @@ func makeProvider(host *provider.HostClient, name, version string) (pulumirpc.Re
 }
 
 // Call dynamically executes a method in the provider associated with a component resource.
-func (k *xyzProvider) Call(ctx context.Context, req *pulumirpc.CallRequest) (*pulumirpc.CallResponse, error) {
+func (k *fileProvider) Call(ctx context.Context, req *pulumirpc.CallRequest) (*pulumirpc.CallResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "Call is not yet implemented")
 }
 
 // Construct creates a new component resource.
-func (k *xyzProvider) Construct(ctx context.Context, req *pulumirpc.ConstructRequest) (*pulumirpc.ConstructResponse, error) {
+func (k *fileProvider) Construct(ctx context.Context, req *pulumirpc.ConstructRequest) (*pulumirpc.ConstructResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "Construct is not yet implemented")
 }
 
 // CheckConfig validates the configuration for this provider.
-func (k *xyzProvider) CheckConfig(ctx context.Context, req *pulumirpc.CheckRequest) (*pulumirpc.CheckResponse, error) {
+func (k *fileProvider) CheckConfig(ctx context.Context, req *pulumirpc.CheckRequest) (*pulumirpc.CheckResponse, error) {
 	return &pulumirpc.CheckResponse{Inputs: req.GetNews()}, nil
 }
 
 // DiffConfig diffs the configuration for this provider.
-func (k *xyzProvider) DiffConfig(ctx context.Context, req *pulumirpc.DiffRequest) (*pulumirpc.DiffResponse, error) {
+func (k *fileProvider) DiffConfig(ctx context.Context, req *pulumirpc.DiffRequest) (*pulumirpc.DiffResponse, error) {
 	return &pulumirpc.DiffResponse{}, nil
 }
 
 // Configure configures the resource provider with "globals" that control its behavior.
-func (k *xyzProvider) Configure(_ context.Context, req *pulumirpc.ConfigureRequest) (*pulumirpc.ConfigureResponse, error) {
-	return &pulumirpc.ConfigureResponse{}, nil
+func (k *fileProvider) Configure(_ context.Context, req *pulumirpc.ConfigureRequest) (*pulumirpc.ConfigureResponse, error) {
+	return &pulumirpc.ConfigureResponse{
+		AcceptSecrets:   true,
+		SupportsPreview: false,
+	}, nil
 }
 
 // Invoke dynamically executes a built-in function in the provider.
-func (k *xyzProvider) Invoke(_ context.Context, req *pulumirpc.InvokeRequest) (*pulumirpc.InvokeResponse, error) {
+func (k *fileProvider) Invoke(_ context.Context, req *pulumirpc.InvokeRequest) (*pulumirpc.InvokeResponse, error) {
 	tok := req.GetTok()
 	return nil, fmt.Errorf("Unknown Invoke token '%s'", tok)
 }
 
 // StreamInvoke dynamically executes a built-in function in the provider. The result is streamed
 // back as a series of messages.
-func (k *xyzProvider) StreamInvoke(req *pulumirpc.InvokeRequest, server pulumirpc.ResourceProvider_StreamInvokeServer) error {
+func (k *fileProvider) StreamInvoke(req *pulumirpc.InvokeRequest, server pulumirpc.ResourceProvider_StreamInvokeServer) error {
 	tok := req.GetTok()
 	return fmt.Errorf("Unknown StreamInvoke token '%s'", tok)
 }
@@ -90,129 +94,152 @@ func (k *xyzProvider) StreamInvoke(req *pulumirpc.InvokeRequest, server pulumirp
 // representation of the properties as present in the program inputs. Though this rule is not
 // required for correctness, violations thereof can negatively impact the end-user experience, as
 // the provider inputs are using for detecting and rendering diffs.
-func (k *xyzProvider) Check(ctx context.Context, req *pulumirpc.CheckRequest) (*pulumirpc.CheckResponse, error) {
+func (k *fileProvider) Check(ctx context.Context, req *pulumirpc.CheckRequest) (*pulumirpc.CheckResponse, error) {
 	urn := resource.URN(req.GetUrn())
-	ty := urn.Type()
-	if ty != "xyz:index:Random" {
-		return nil, fmt.Errorf("Unknown resource type '%s'", ty)
-	}
-	return &pulumirpc.CheckResponse{Inputs: req.News, Failures: nil}, nil
+	label := fmt.Sprintf("%s.Check(%s)", k.name, urn)
+	glog.V(9).Infof("%s executing", label)
+
+	inputs := req.GetNews()
+
+	return &pulumirpc.CheckResponse{Inputs: inputs}, nil
 }
 
 // Diff checks what impacts a hypothetical update will have on the resource's properties.
-func (k *xyzProvider) Diff(ctx context.Context, req *pulumirpc.DiffRequest) (*pulumirpc.DiffResponse, error) {
+func (k *fileProvider) Diff(ctx context.Context, req *pulumirpc.DiffRequest) (*pulumirpc.DiffResponse, error) {
 	urn := resource.URN(req.GetUrn())
-	ty := urn.Type()
-	if ty != "xyz:index:Random" {
-		return nil, fmt.Errorf("Unknown resource type '%s'", ty)
-	}
+        label := fmt.Sprintf("%s.Diff(%s)", k.name, urn)
+        glog.V(9).Infof("%s executing", label)
 
-	olds, err := plugin.UnmarshalProperties(req.GetOlds(), plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true})
-	if err != nil {
-		return nil, err
-	}
+        oldState, err := plugin.UnmarshalProperties(req.GetOlds(), plugin.MarshalOptions{
+                Label:        fmt.Sprintf("%s.oldState", label),
+                KeepUnknowns: true,
+                KeepSecrets:  true,
+        })
+        if err != nil {
+                return nil, fmt.Errorf("diff failed because malformed resource inputs: %w", err)
+        }
 
-	news, err := plugin.UnmarshalProperties(req.GetNews(), plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true})
-	if err != nil {
-		return nil, err
-	}
+        oldInputs := parseCheckpointObject(oldState)
 
-	d := olds.Diff(news)
-	changes := pulumirpc.DiffResponse_DIFF_NONE
-	if d.Changed("length") {
-		changes = pulumirpc.DiffResponse_DIFF_SOME
-	}
+        newInputs, err := plugin.UnmarshalProperties(req.GetNews(), plugin.MarshalOptions{
+                Label:        fmt.Sprintf("%s.newInputs", label),
+                KeepUnknowns: true,
+                KeepSecrets:  true,
+        })
+        if err != nil {
+                return nil, fmt.Errorf("diff failed because malformed resource inputs: %w", err)
+        }
 
-	return &pulumirpc.DiffResponse{
-		Changes:  changes,
-		Replaces: []string{"length"},
-	}, nil
+        diff := oldInputs.Diff(newInputs)
+        if diff == nil {
+                return &pulumirpc.DiffResponse{Changes: pulumirpc.DiffResponse_DIFF_NONE}, nil
+        }
+
+        return &pulumirpc.DiffResponse{Changes: pulumirpc.DiffResponse_DIFF_UNKNOWN, DeleteBeforeReplace: true}, nil
 }
 
 // Create allocates a new instance of the provided resource and returns its unique ID afterwards.
-func (k *xyzProvider) Create(ctx context.Context, req *pulumirpc.CreateRequest) (*pulumirpc.CreateResponse, error) {
+func (k *fileProvider) Create(ctx context.Context, req *pulumirpc.CreateRequest) (*pulumirpc.CreateResponse, error) {
 	urn := resource.URN(req.GetUrn())
-	ty := urn.Type()
-	if ty != "xyz:index:Random" {
-		return nil, fmt.Errorf("Unknown resource type '%s'", ty)
+	label := fmt.Sprintf("%s.Create(%s)", k.name, urn)
+	glog.V(9).Infof("%s executing", label)
+
+	inputs, err := plugin.UnmarshalProperties(req.GetProperties(), plugin.MarshalOptions{
+		KeepUnknowns: true,
+		SkipNulls:    true,
+		KeepSecrets:  true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("malformed resource inputs: %w", err)
 	}
 
-	inputs, err := plugin.UnmarshalProperties(req.GetProperties(), plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true})
+	resp, err := resources.ManageRemoteFile("create", inputs)
 	if err != nil {
 		return nil, err
 	}
 
-	if !inputs["length"].IsNumber() {
-		return nil, fmt.Errorf("Expected input property 'length' of type 'number' but got '%s", inputs["length"].TypeString())
-	}
-
-	n := int(inputs["length"].NumberValue())
-
-	// Actually "create" the random number
-	result := makeRandom(n)
-
-	outputs := map[string]interface{}{
-		"length": n,
-		"result": result,
-	}
-
 	outputProperties, err := plugin.MarshalProperties(
-		resource.NewPropertyMapFromMap(outputs),
-		plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true},
+		checkpointObject(inputs, resp),
+		plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true, KeepSecrets: true},
 	)
 	if err != nil {
 		return nil, err
 	}
+
 	return &pulumirpc.CreateResponse{
-		Id:         result,
+		Id:         resp["id"].(string),
 		Properties: outputProperties,
 	}, nil
 }
 
 // Read the current live state associated with a resource.
-func (k *xyzProvider) Read(ctx context.Context, req *pulumirpc.ReadRequest) (*pulumirpc.ReadResponse, error) {
-	urn := resource.URN(req.GetUrn())
-	ty := urn.Type()
-	if ty != "xyz:index:Random" {
-		return nil, fmt.Errorf("Unknown resource type '%s'", ty)
-	}
+func (k *fileProvider) Read(ctx context.Context, req *pulumirpc.ReadRequest) (*pulumirpc.ReadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "Read is not yet implemented for 'xyz:index:Random'")
 }
 
 // Update updates an existing resource with new values.
-func (k *xyzProvider) Update(ctx context.Context, req *pulumirpc.UpdateRequest) (*pulumirpc.UpdateResponse, error) {
-	urn := resource.URN(req.GetUrn())
-	ty := urn.Type()
-	if ty != "xyz:index:Random" {
-		return nil, fmt.Errorf("Unknown resource type '%s'", ty)
+func (k *fileProvider) Update(ctx context.Context, req *pulumirpc.UpdateRequest) (*pulumirpc.UpdateResponse, error) {
+        news, err := plugin.UnmarshalProperties(req.GetNews(), plugin.MarshalOptions{
+                KeepUnknowns: true,
+                SkipNulls:    true,
+                KeepSecrets:  true,
+        })
+        if err != nil {
+                return nil, err
+        }
+
+	resp, err := resources.ManageRemoteFile("update", news)
+	if err != nil {
+		return nil, err
 	}
 
-	// Our Random resource will never be updated - if there is a diff, it will be a replacement.
-	return nil, status.Error(codes.Unimplemented, "Update is not yet implemented for 'xyz:index:Random'")
+        outputProperties, err := plugin.MarshalProperties(
+                checkpointObject(news, resp),
+                plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true, KeepSecrets: true},
+        )
+        if err != nil {
+                return nil, err
+        }
+
+        return &pulumirpc.UpdateResponse{
+                Properties: outputProperties,
+        }, nil
 }
 
 // Delete tears down an existing resource with the given ID.  If it fails, the resource is assumed
 // to still exist.
-func (k *xyzProvider) Delete(ctx context.Context, req *pulumirpc.DeleteRequest) (*pbempty.Empty, error) {
+func (k *fileProvider) Delete(ctx context.Context, req *pulumirpc.DeleteRequest) (*pbempty.Empty, error) {
 	urn := resource.URN(req.GetUrn())
-	ty := urn.Type()
-	if ty != "xyz:index:Random" {
-		return nil, fmt.Errorf("Unknown resource type '%s'", ty)
+	label := fmt.Sprintf("%s.Delete(%s)", k.name, urn)
+	glog.V(9).Infof("%s executing", label)
+
+	oldState, err := plugin.UnmarshalProperties(req.GetProperties(), plugin.MarshalOptions{
+		SkipNulls:   true,
+		KeepSecrets: true,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	// Note that for our Random resource, we don't have to do anything on Delete.
+	inputs := parseCheckpointObject(oldState)
+
+	_, err = resources.ManageRemoteFile("delete", inputs)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pbempty.Empty{}, nil
 }
 
 // GetPluginInfo returns generic information about this plugin, like its version.
-func (k *xyzProvider) GetPluginInfo(context.Context, *pbempty.Empty) (*pulumirpc.PluginInfo, error) {
+func (k *fileProvider) GetPluginInfo(context.Context, *pbempty.Empty) (*pulumirpc.PluginInfo, error) {
 	return &pulumirpc.PluginInfo{
 		Version: k.version,
 	}, nil
 }
 
 // GetSchema returns the JSON-serialized schema for the provider.
-func (k *xyzProvider) GetSchema(ctx context.Context, req *pulumirpc.GetSchemaRequest) (*pulumirpc.GetSchemaResponse, error) {
+func (k *fileProvider) GetSchema(ctx context.Context, req *pulumirpc.GetSchemaRequest) (*pulumirpc.GetSchemaResponse, error) {
 	return &pulumirpc.GetSchemaResponse{}, nil
 }
 
@@ -221,18 +248,20 @@ func (k *xyzProvider) GetSchema(ctx context.Context, req *pulumirpc.GetSchemaReq
 // creation error or an initialization error). Since Cancel is advisory and non-blocking, it is up
 // to the host to decide how long to wait after Cancel is called before (e.g.)
 // hard-closing any gRPC connection.
-func (k *xyzProvider) Cancel(context.Context, *pbempty.Empty) (*pbempty.Empty, error) {
-	// TODO
+func (k *fileProvider) Cancel(context.Context, *pbempty.Empty) (*pbempty.Empty, error) {
 	return &pbempty.Empty{}, nil
 }
 
-func makeRandom(length int) string {
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	charset := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+func checkpointObject(inputs resource.PropertyMap, outputs map[string]interface{}) resource.PropertyMap {
+	object := resource.NewPropertyMapFromMap(outputs)
+	object["__inputs"] = resource.MakeSecret(resource.NewObjectProperty(inputs))
+	return object
+}
 
-	result := make([]rune, length)
-	for i := range result {
-		result[i] = charset[seededRand.Intn(len(charset))]
+func parseCheckpointObject(obj resource.PropertyMap) resource.PropertyMap {
+	if inputs, ok := obj["__inputs"]; ok {
+		return inputs.SecretValue().Element.ObjectValue()
 	}
-	return string(result)
+
+	return nil
 }

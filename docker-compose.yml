@@ -1,0 +1,17 @@
+version: "2.1"
+services:
+  openssh-server:
+    image: lscr.io/linuxserver/openssh-server
+    hostname: openssh-server #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - PUBLIC_KEY_FILE=/ssh/id_rsa.pub
+      - SUDO_ACCESS=true
+      - USER_NAME=ssh-user
+    volumes:
+      - './misc/ssh:/ssh'
+    ports:
+      - 2222:2222
+    restart: unless-stopped

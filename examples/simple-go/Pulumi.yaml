@@ -1,0 +1,3 @@
+name: wgpeer_local
+runtime: go
+description: A minimal Go Pulumi program

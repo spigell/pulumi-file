@@ -1,0 +1,99 @@
+{
+    "name": "file",
+    "version": "0.0.1",
+    "keywords": [
+        "pulumi",
+        "utils"
+    ],
+    "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/download/v0.0.1",
+    "types": {
+        "file:index:connection": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "replaceOnChanges": true
+                },
+                "privateKey": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "file:index:hooks": {
+            "type": "object",
+            "properties": {
+                "commandAfterUpdate": {
+                    "type": "string"
+                },
+                "commandAfterCreate": {
+                    "type": "string"
+                },
+                "commandAfterDestroy": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "resources": {
+        "file:index:Remote": {
+            "properties": {
+                "permissions": {
+                    "type": "string",
+                    "default": "0644",
+                    "replaceOnChanges": true
+                },
+                "path": {
+                    "type": "string",
+                    "replaceOnChanges": true
+                },
+                "connection": {
+                    "$ref": "#/types/file:index:connection"
+                },
+                "content": {
+                    "type": "string"
+                }
+            },
+            "inputProperties": {
+                "connection": {
+                    "$ref": "#/types/file:index:connection"
+                },
+                "hooks": {
+                    "$ref": "#/types/file:index:hooks"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "string"
+                },
+                "writableTempDirectory": {
+                    "type": "string"
+                },
+                "useSudo": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "requiredInput": [
+                "connection",
+                "content"
+            ]
+        }
+    },
+    "language": {
+        "go": {
+            "generateResourceContainerTypes": true
+        },
+        "nodejs": {
+            "dependencies": {
+                "@pulumi/pulumi": "^3.0.0"
+            }
+        }
+    }
+}

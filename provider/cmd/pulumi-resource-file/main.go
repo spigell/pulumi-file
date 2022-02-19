@@ -12,7 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package version
+package main
 
-// Version is initialized by the Go linker to contain the semver of this build.
-var Version string
+import (
+	"github.com/spigell/pulumi-file/provider/pkg/provider"
+	"github.com/spigell/pulumi-file/provider/pkg/version"
+)
+
+var providerName = "file"
+
+func main() {
+	provider.Serve(providerName, version.Version)
+}
