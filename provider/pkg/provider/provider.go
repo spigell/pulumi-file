@@ -38,6 +38,8 @@ type fileProvider struct {
 	version string
 }
 
+const remoteFileResource = "file:index:Remote"
+
 func makeProvider(host *provider.HostClient, name, version string) (pulumirpc.ResourceProviderServer, error) {
 	// Return the new provider
 	return &fileProvider{
@@ -78,14 +80,14 @@ func (k *fileProvider) Configure(_ context.Context, req *pulumirpc.ConfigureRequ
 // Invoke dynamically executes a built-in function in the provider.
 func (k *fileProvider) Invoke(_ context.Context, req *pulumirpc.InvokeRequest) (*pulumirpc.InvokeResponse, error) {
 	tok := req.GetTok()
-	return nil, fmt.Errorf("Unknown Invoke token '%s'", tok)
+	return nil, fmt.Errorf("unknown Invoke token '%s'", tok)
 }
 
 // StreamInvoke dynamically executes a built-in function in the provider. The result is streamed
 // back as a series of messages.
 func (k *fileProvider) StreamInvoke(req *pulumirpc.InvokeRequest, server pulumirpc.ResourceProvider_StreamInvokeServer) error {
 	tok := req.GetTok()
-	return fmt.Errorf("Unknown StreamInvoke token '%s'", tok)
+	return fmt.Errorf("unknown StreamInvoke token '%s'", tok)
 }
 
 // Check validates that the given property bag is valid for a resource of the given type and returns
@@ -96,10 +98,18 @@ func (k *fileProvider) StreamInvoke(req *pulumirpc.InvokeRequest, server pulumir
 // the provider inputs are using for detecting and rendering diffs.
 func (k *fileProvider) Check(ctx context.Context, req *pulumirpc.CheckRequest) (*pulumirpc.CheckResponse, error) {
 	urn := resource.URN(req.GetUrn())
+	ty := urn.Type()
 	label := fmt.Sprintf("%s.Check(%s)", k.name, urn)
 	glog.V(9).Infof("%s executing", label)
 
 	inputs := req.GetNews()
+
+	switch ty {
+	case remoteFileResource:
+
+	default:
+		return nil, fmt.Errorf("unknown resource type `%s`", ty)
+	}
 
 	return &pulumirpc.CheckResponse{Inputs: inputs}, nil
 }
@@ -107,35 +117,35 @@ func (k *fileProvider) Check(ctx context.Context, req *pulumirpc.CheckRequest) (
 // Diff checks what impacts a hypothetical update will have on the resource's properties.
 func (k *fileProvider) Diff(ctx context.Context, req *pulumirpc.DiffRequest) (*pulumirpc.DiffResponse, error) {
 	urn := resource.URN(req.GetUrn())
-        label := fmt.Sprintf("%s.Diff(%s)", k.name, urn)
-        glog.V(9).Infof("%s executing", label)
+	label := fmt.Sprintf("%s.Diff(%s)", k.name, urn)
+	glog.V(9).Infof("%s executing", label)
 
-        oldState, err := plugin.UnmarshalProperties(req.GetOlds(), plugin.MarshalOptions{
-                Label:        fmt.Sprintf("%s.oldState", label),
-                KeepUnknowns: true,
-                KeepSecrets:  true,
-        })
-        if err != nil {
-                return nil, fmt.Errorf("diff failed because malformed resource inputs: %w", err)
-        }
+	oldState, err := plugin.UnmarshalProperties(req.GetOlds(), plugin.MarshalOptions{
+		Label:        fmt.Sprintf("%s.oldState", label),
+		KeepUnknowns: true,
+		KeepSecrets:  true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("diff failed because malformed resource inputs: %w", err)
+	}
 
-        oldInputs := parseCheckpointObject(oldState)
+	oldInputs := parseCheckpointObject(oldState)
 
-        newInputs, err := plugin.UnmarshalProperties(req.GetNews(), plugin.MarshalOptions{
-                Label:        fmt.Sprintf("%s.newInputs", label),
-                KeepUnknowns: true,
-                KeepSecrets:  true,
-        })
-        if err != nil {
-                return nil, fmt.Errorf("diff failed because malformed resource inputs: %w", err)
-        }
+	newInputs, err := plugin.UnmarshalProperties(req.GetNews(), plugin.MarshalOptions{
+		Label:        fmt.Sprintf("%s.newInputs", label),
+		KeepUnknowns: true,
+		KeepSecrets:  true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("diff failed because malformed resource inputs: %w", err)
+	}
 
-        diff := oldInputs.Diff(newInputs)
-        if diff == nil {
-                return &pulumirpc.DiffResponse{Changes: pulumirpc.DiffResponse_DIFF_NONE}, nil
-        }
+	diff := oldInputs.Diff(newInputs)
+	if diff == nil {
+		return &pulumirpc.DiffResponse{Changes: pulumirpc.DiffResponse_DIFF_NONE}, nil
+	}
 
-        return &pulumirpc.DiffResponse{Changes: pulumirpc.DiffResponse_DIFF_UNKNOWN, DeleteBeforeReplace: true}, nil
+	return &pulumirpc.DiffResponse{Changes: pulumirpc.DiffResponse_DIFF_UNKNOWN, DeleteBeforeReplace: true}, nil
 }
 
 // Create allocates a new instance of the provided resource and returns its unique ID afterwards.
@@ -153,9 +163,12 @@ func (k *fileProvider) Create(ctx context.Context, req *pulumirpc.CreateRequest)
 		return nil, fmt.Errorf("malformed resource inputs: %w", err)
 	}
 
-	resp, err := resources.ManageRemoteFile("create", inputs)
-	if err != nil {
-		return nil, err
+	var resp map[string]interface{}
+	if urn.Type() == remoteFileResource {
+		resp, err = resources.ManageRemoteFile(ctx, "create", inputs)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	outputProperties, err := plugin.MarshalProperties(
@@ -174,36 +187,41 @@ func (k *fileProvider) Create(ctx context.Context, req *pulumirpc.CreateRequest)
 
 // Read the current live state associated with a resource.
 func (k *fileProvider) Read(ctx context.Context, req *pulumirpc.ReadRequest) (*pulumirpc.ReadResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "Read is not yet implemented for 'xyz:index:Random'")
+	return nil, status.Error(codes.Unimplemented, "Read is not yet implemented")
 }
 
 // Update updates an existing resource with new values.
 func (k *fileProvider) Update(ctx context.Context, req *pulumirpc.UpdateRequest) (*pulumirpc.UpdateResponse, error) {
-        news, err := plugin.UnmarshalProperties(req.GetNews(), plugin.MarshalOptions{
-                KeepUnknowns: true,
-                SkipNulls:    true,
-                KeepSecrets:  true,
-        })
-        if err != nil {
-                return nil, err
-        }
-
-	resp, err := resources.ManageRemoteFile("update", news)
+	urn := resource.URN(req.GetUrn())
+	news, err := plugin.UnmarshalProperties(req.GetNews(), plugin.MarshalOptions{
+		KeepUnknowns: true,
+		SkipNulls:    true,
+		KeepSecrets:  true,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-        outputProperties, err := plugin.MarshalProperties(
-                checkpointObject(news, resp),
-                plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true, KeepSecrets: true},
-        )
-        if err != nil {
-                return nil, err
-        }
+	var resp map[string]interface{}
 
-        return &pulumirpc.UpdateResponse{
-                Properties: outputProperties,
-        }, nil
+	if urn.Type() == remoteFileResource {
+		resp, err = resources.ManageRemoteFile(ctx, "update", news)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	outputProperties, err := plugin.MarshalProperties(
+		checkpointObject(news, resp),
+		plugin.MarshalOptions{KeepUnknowns: true, SkipNulls: true, KeepSecrets: true},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pulumirpc.UpdateResponse{
+		Properties: outputProperties,
+	}, nil
 }
 
 // Delete tears down an existing resource with the given ID.  If it fails, the resource is assumed
@@ -223,9 +241,11 @@ func (k *fileProvider) Delete(ctx context.Context, req *pulumirpc.DeleteRequest)
 
 	inputs := parseCheckpointObject(oldState)
 
-	_, err = resources.ManageRemoteFile("delete", inputs)
-	if err != nil {
-		return nil, err
+	if urn.Type() == remoteFileResource {
+		_, err = resources.ManageRemoteFile(ctx, "delete", inputs)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &pbempty.Empty{}, nil

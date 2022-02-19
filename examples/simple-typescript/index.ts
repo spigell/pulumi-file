@@ -1,12 +1,11 @@
-import * as wgpeer from "@spigell/pulumi-wgpeer";
+import * as file from "@spigell/pulumi-file";
 
-const peer = new wgpeer.New("my-peer", { 
+const peer = new file.NewRemote("myfile", { 
 	connection: {
-        addr: `${serverIP}:22`,
-        user: "rancher",
+        addr: '127.0.0.1:2222',
+        user: 'ssh-user',
         key: sshServerPrivateKey
     },
-    interface: {
-    	privateKey: "aaaa"
-    }
+    path: '/config/hello.txt',
+    content: 'Greetings from Pulumi!'
 });

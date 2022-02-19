@@ -3,16 +3,16 @@ PROJECT_NAME := Pulumi file Resource Provider
 PACK             := file
 PACKDIR          := sdk
 PROJECT          := github.com/spigell/pulumi-${PACK}
-NODE_MODULE_NAME := @spigell/${PACK}
+NODE_MODULE_NAME := @spigell/pulumi-${PACK}
 
 PROVIDER        := pulumi-resource-${PACK}
 CODEGEN         := pulumi-gen-${PACK}
 VERSION         ?= $(shell pulumictl get version)
 PROVIDER_PATH   := provider
-VERSION_PATH     := ${PROVIDER_PATH}/pkg/version.Version
+VERSION_PATH    := ${PROVIDER_PATH}/pkg/version.Version
 
 SCHEMA_FILE     := provider/cmd/pulumi-resource-file/schema.json
-GOPATH			:= $(shell go env GOPATH)
+GOPATH		:= $(shell go env GOPATH)
 
 WORKING_DIR     := $(shell pwd)
 TESTPARALLELISM := 4
@@ -39,7 +39,6 @@ go_sdk::
 	rm -rf sdk/go
 	$(WORKING_DIR)/bin/$(CODEGEN) -version=${VERSION} go $(SCHEMA_FILE) $(CURDIR)
 
-nodejs_sdk:: VERSION := $(shell pulumictl get version --language javascript)
 nodejs_sdk::
 	rm -rf sdk/nodejs
 	$(WORKING_DIR)/bin/$(CODEGEN) -version=${VERSION} nodejs $(SCHEMA_FILE) $(CURDIR)
@@ -57,12 +56,12 @@ build:: gen provider go_sdk nodejs_sdk
 only_build:: build
 
 lint::
-	for DIR in "provider" "sdk" "tests" ; do \
+	for DIR in "provider" "sdk" ; do \
 		pushd $$DIR && golangci-lint run -c ../.golangci.yml --timeout 10m && popd ; \
 	done
 
 
-install:: install_nodejs_sdk install_dotnet_sdk
+install:: install_nodejs_sdk
 	cp $(WORKING_DIR)/bin/${PROVIDER} ${GOPATH}/bin
 
 
@@ -75,13 +74,13 @@ test_all::
 	cd tests/sdk/dotnet && $(GO_TEST) ./...
 	cd tests/sdk/go && $(GO_TEST) ./...
 
-install_dotnet_sdk::
-	rm -rf $(WORKING_DIR)/nuget/$(NUGET_PKG_NAME).*.nupkg
-	mkdir -p $(WORKING_DIR)/nuget
-	find . -name '*.nupkg' -print -exec cp -p {} ${WORKING_DIR}/nuget \;
-
-install_python_sdk::
-	#target intentionally blank
+test_remote:
+	docker-compose up openssh-server -d
+	pulumi -C examples/simple-go stack init dev
+	cat ./misc/ssh/id_rsa | pulumi -C examples/simple-go config set --secret sshKey
+	PATH=$(PATH):../../bin pulumi -C examples/simple-go up -fy
+	PATH=$(PATH):../../bin pulumi -C examples/simple-go destroy -yf
+	pulumi -C examples/simple-go stack rm dev -y
 
 install_go_sdk::
 	#target intentionally blank

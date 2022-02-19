@@ -1,12 +1,13 @@
 package resources
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"path/filepath"
+	"strconv"
 
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	"github.com/spigell/pulumi-file/provider/pkg/transport"
@@ -14,9 +15,8 @@ import (
 
 func convertToRemote(r resource.PropertyMap) (*RemoteFile, error) {
 	parsedPerm, err := strconv.ParseUint(r["permissions"].StringValue(), 0, 32)
-
 	if err != nil {
-		return &RemoteFile{}, fmt.Errorf("Failed to convert permissions for file: %w", err)
+		return &RemoteFile{}, fmt.Errorf("failed to convert permissions for file: %w", err)
 	}
 
 	n := &RemoteFile{
@@ -43,12 +43,15 @@ func convertToRemote(r resource.PropertyMap) (*RemoteFile, error) {
 	return n, nil
 }
 
-func ManageRemoteFile(kind string, m resource.PropertyMap) (map[string]interface{}, error) {
+func ManageRemoteFile(ctx context.Context, kind string, m resource.PropertyMap) (map[string]interface{}, error) {
 	r, err := convertToRemote(m)
+	if err != nil {
+		return nil, err
+	}
 
 	s, err := transport.SSHInit(r.Connection.Address, r.Connection.User, r.Connection.PrivateKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed init ssh: %w", err)
+		return nil, fmt.Errorf("failed init ssh: %w", err)
 	}
 
 	r.transport = s
@@ -60,38 +63,36 @@ func ManageRemoteFile(kind string, m resource.PropertyMap) (map[string]interface
 	var res map[string]interface{}
 	switch kind {
 	case "delete":
-		res, err = r.delete()
+		res, err = r.delete(ctx)
 		if err != nil {
 			return nil, err
 		}
 
 	default:
-		res, err = r.deploy(kind)
+		res, err = r.deploy(ctx, kind)
 		if err != nil {
 			return nil, err
 		}
-
 	}
 	return res, nil
 }
 
-func (r *RemoteFile) deploy(kind string) (map[string]interface{}, error) {
-
+func (r *RemoteFile) deploy(ctx context.Context, kind string) (map[string]interface{}, error) {
 	tmp, err := ioutil.TempFile(os.TempDir(), "pulumi-file.*")
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create temp file: %w", err)
+		return nil, fmt.Errorf("failed to create temp file: %w", err)
 	}
 
 	defer os.Remove(tmp.Name())
 
 	err = ioutil.WriteFile(tmp.Name(), r.Content, 0600)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to write temp file: %w", err)
+		return nil, fmt.Errorf("failed to write temp file: %w", err)
 	}
 
 	err = tmp.Chmod(r.Permissions)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to change permissions for file: %w", err)
+		return nil, fmt.Errorf("failed to change permissions for file: %w", err)
 	}
 
 	filename := filepath.Base(r.Path)
@@ -100,7 +101,6 @@ func (r *RemoteFile) deploy(kind string) (map[string]interface{}, error) {
 
 	if r.WritableTempDirectory != "" {
 		tmpOnRemote = fmt.Sprintf("%s/%s", r.WritableTempDirectory, filename)
-
 	} else {
 		if r.Connection.User == "root" {
 			tmpOnRemote = fmt.Sprintf("/root/%s", filename)
@@ -109,12 +109,10 @@ func (r *RemoteFile) deploy(kind string) (map[string]interface{}, error) {
 		}
 	}
 
-
-	err = r.transport.CopyFile(tmp.Name(), tmpOnRemote)
+	err = r.transport.CopyFile(ctx, tmp.Name(), tmpOnRemote)
 	if err != nil {
 		return nil, fmt.Errorf("failed to copy temp file over scp to %s: %w", tmpOnRemote, err)
 	}
-
 
 	mvCmd := fmt.Sprintf("mv -v %s %s", tmpOnRemote, r.Path)
 
@@ -122,7 +120,7 @@ func (r *RemoteFile) deploy(kind string) (map[string]interface{}, error) {
 		mvCmd = "sudo " + mvCmd
 	}
 
-	_, err = r.transport.RunCmd(mvCmd)
+	_, err = r.transport.RunCmd(ctx, mvCmd)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute move command %s: %w", mvCmd, err)
@@ -135,12 +133,10 @@ func (r *RemoteFile) deploy(kind string) (map[string]interface{}, error) {
 	case "update":
 		hookCmd = r.Hooks.CommandAfterUpdate
 	default:
-
 	}
-
-	_, err = r.transport.RunCmd(hookCmd)
+	_, err = r.transport.RunCmd(ctx, hookCmd)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to execute hook command %s: %w", hookCmd, err)
+		return nil, fmt.Errorf("failed to execute hook command %s: %w", hookCmd, err)
 	}
 
 	result := make(map[string]interface{})
@@ -148,24 +144,25 @@ func (r *RemoteFile) deploy(kind string) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func (r *RemoteFile) delete() (map[string]interface{}, error) {
+func (r *RemoteFile) delete(ctx context.Context) (map[string]interface{}, error) {
 	delCmd := fmt.Sprintf("rm -rfv %s", r.Path)
 
 	if r.UseSudo {
 		delCmd = "sudo " + delCmd
 	}
-	_, err := r.transport.RunCmd(delCmd)
+	_, err := r.transport.RunCmd(ctx, delCmd)
 	if err != nil {
 		return nil, err
 	}
 
 	if r.Hooks.CommandAfterDestroy != "" {
-		_, err = r.transport.RunCmd(r.Hooks.CommandAfterDestroy)
+		_, err = r.transport.RunCmd(ctx, r.Hooks.CommandAfterDestroy)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to execute post command %s: %w", r.Hooks.CommandAfterDestroy, err)
+			return nil, fmt.Errorf("failed to execute post command %s: %w", r.Hooks.CommandAfterDestroy, err)
 		}
 	}
-	return nil, nil
+	result := make(map[string]interface{})
+	return result, nil
 }
 
 func secretOrPlain(c resource.PropertyValue, token resource.PropertyKey) string {
@@ -175,19 +172,16 @@ func secretOrPlain(c resource.PropertyValue, token resource.PropertyKey) string 
 		}
 
 		return c.SecretValue().Element.ObjectValue()[token].StringValue()
-
 	}
-
 	if token == "" {
-	        return c.StringValue()
+		return c.StringValue()
 	}
 
-        if c.ObjectValue()[token].IsSecret() {
-	        return c.ObjectValue()[token].SecretValue().Element.StringValue()
-        }
+	if c.ObjectValue()[token].IsSecret() {
+		return c.ObjectValue()[token].SecretValue().Element.StringValue()
+	}
 
 	return c.ObjectValue()[token].StringValue()
-
 }
 
 func valueOrEmpty(input resource.PropertyMap, tok resource.PropertyKey) string {

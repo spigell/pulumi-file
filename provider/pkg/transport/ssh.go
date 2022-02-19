@@ -2,9 +2,13 @@ package transport
 
 import (
 	"bytes"
+	"context"
+	"time"
 
 	"github.com/tmc/scp"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/retry"
 )
 
 type SSHTransport struct {
@@ -12,8 +16,28 @@ type SSHTransport struct {
 	clientConfig *ssh.ClientConfig
 }
 
-func SSHInit(addr, user, key string) (*SSHTransport, error) {
+func (s *SSHTransport) dial(ctx context.Context, config *ssh.ClientConfig) (*ssh.Client, error) {
+	var client *ssh.Client
+	var err error
+	_, _, err = retry.Until(ctx, retry.Acceptor{
+		Accept: func(try int, nextRetryTime time.Duration) (bool, interface{}, error) {
+			client, err = ssh.Dial("tcp", s.Addr, config)
+			if err != nil {
+				if try > 10 {
+					return true, nil, err
+				}
+				return false, nil, nil
+			}
+			return true, nil, nil
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
 
+func SSHInit(addr, user, key string) (*SSHTransport, error) {
 	signer, err := ssh.ParsePrivateKey([]byte(key))
 	if err != nil {
 		return nil, err
@@ -35,8 +59,8 @@ func SSHInit(addr, user, key string) (*SSHTransport, error) {
 	return s, nil
 }
 
-func (s *SSHTransport) RunCmd(cmd string) ([]byte, error) {
-	client, err := ssh.Dial("tcp", s.Addr, s.clientConfig)
+func (s *SSHTransport) RunCmd(ctx context.Context, cmd string) ([]byte, error) {
+	client, err := s.dial(ctx, s.clientConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +81,8 @@ func (s *SSHTransport) RunCmd(cmd string) ([]byte, error) {
 	return o.Bytes(), nil
 }
 
-func (s *SSHTransport) CopyFile(source, dest string) error {
-	client, err := ssh.Dial("tcp", s.Addr, s.clientConfig)
+func (s *SSHTransport) CopyFile(ctx context.Context, source, dest string) error {
+	client, err := s.dial(ctx, s.clientConfig)
 	if err != nil {
 		return err
 	}

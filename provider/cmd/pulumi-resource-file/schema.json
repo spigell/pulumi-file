@@ -91,6 +91,7 @@
             "generateResourceContainerTypes": true
         },
         "nodejs": {
+            "packageName": "@spigell/pulumi-file",
             "dependencies": {
                 "@pulumi/pulumi": "^3.0.0"
             }

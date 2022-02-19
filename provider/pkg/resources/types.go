@@ -2,18 +2,19 @@ package resources
 
 import (
 	"io/fs"
+
 	"github.com/spigell/pulumi-file/provider/pkg/transport"
 )
 
 type RemoteFile struct {
-	Connection  Connection
-	Content     []byte
-	Permissions fs.FileMode
+	Connection            Connection
+	Content               []byte
+	Permissions           fs.FileMode
 	WritableTempDirectory string
-	UseSudo bool
-	Path        string
-	Hooks      Hooks
-	transport *transport.SSHTransport
+	UseSudo               bool
+	Path                  string
+	Hooks                 Hooks
+	transport             *transport.SSHTransport
 }
 
 type Connection struct {
