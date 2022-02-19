@@ -17,6 +17,6 @@
     },
     "pulumi": {
         "resource": true,
-        "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/download/v0.0.1"
+        "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/download/v0.0.2"
     }
 }

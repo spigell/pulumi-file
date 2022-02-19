@@ -1,11 +1,11 @@
 {
     "name": "file",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "keywords": [
         "pulumi",
         "utils"
     ],
-    "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/download/v0.0.1",
+    "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/download/v0.0.2",
     "types": {
         "file:index:connection": {
             "type": "object",
@@ -26,13 +26,16 @@
             "type": "object",
             "properties": {
                 "commandAfterUpdate": {
-                    "type": "string"
+                    "type": "string",
+                    "default": ""
                 },
                 "commandAfterCreate": {
-                    "type": "string"
+                    "type": "string",
+                    "default": ""
                 },
                 "commandAfterDestroy": {
-                    "type": "string"
+                    "type": "string",
+                    "default": ""
                 }
             }
         }
@@ -42,7 +45,6 @@
             "properties": {
                 "permissions": {
                     "type": "string",
-                    "default": "0644",
                     "replaceOnChanges": true
                 },
                 "path": {
@@ -70,7 +72,8 @@
                     "type": "string"
                 },
                 "permissions": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "0644"
                 },
                 "writableTempDirectory": {
                     "type": "string"

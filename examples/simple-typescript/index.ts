@@ -1,11 +1,16 @@
 import * as file from "@spigell/pulumi-file";
+import * as fs from 'fs';
 
-const peer = new file.NewRemote("myfile", { 
+const sshPrivateKey = fs.readFileSync(`../../misc/ssh/id_rsa`, 'utf8');
+
+const peer = new file.Remote("myfile", {
 	connection: {
-        addr: '127.0.0.1:2222',
+        address: '127.0.0.1:2222',
         user: 'ssh-user',
-        key: sshServerPrivateKey
+        privateKey: sshPrivateKey
     },
+    useSudo: false,
+    writableTempDirectory: '/tmp',
     path: '/config/hello.txt',
     content: 'Greetings from Pulumi!'
 });

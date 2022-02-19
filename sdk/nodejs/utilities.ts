@@ -50,5 +50,5 @@ export function getVersion(): string {
 
 /** @internal */
 export function resourceOptsDefaults(): any {
-    return { version: getVersion(), pluginDownloadURL: "https://github.com/spigell/pulumi-file/releases/download/v0.0.1" };
+    return { version: getVersion(), pluginDownloadURL: "https://github.com/spigell/pulumi-file/releases/download/v0.0.2" };
 }

@@ -5,6 +5,7 @@
         "@types/node": "latest"
     },
     "dependencies": {
-        "@pulumi/pulumi": "latest"
+        "@pulumi/pulumi": "latest",
+        "@spigell/pulumi-file": "file:../../sdk/nodejs/bin"
     }
 }

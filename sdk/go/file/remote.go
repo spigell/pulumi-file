@@ -26,6 +26,12 @@ func NewRemote(ctx *pulumi.Context,
 		args = &RemoteArgs{}
 	}
 
+	if args.Hooks != nil {
+		args.Hooks = args.Hooks.ToHooksPtrOutput().ApplyT(func(v *Hooks) *Hooks { return v.Defaults() }).(HooksPtrOutput)
+	}
+	if isZero(args.Permissions) {
+		args.Permissions = pulumi.StringPtr("0644")
+	}
 	if isZero(args.UseSudo) {
 		args.UseSudo = pulumi.BoolPtr(false)
 	}

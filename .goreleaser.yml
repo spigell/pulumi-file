@@ -15,7 +15,7 @@ builds:
       - windows
       - linux
     ldflags:
-      - -X github.com/pulumi/pulumi-file/provider/pkg/version.Version={{.Tag}}
+      - -X github.com/spigell/pulumi-file/provider/pkg/version.Version={{.Tag}}
     main: ./cmd/pulumi-resource-file/
 changelog:
   skip: true

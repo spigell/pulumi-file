@@ -50,9 +50,9 @@ export class Remote extends pulumi.CustomResource {
         if (!opts.id) {
             resourceInputs["connection"] = args ? args.connection : undefined;
             resourceInputs["content"] = args ? args.content : undefined;
-            resourceInputs["hooks"] = args ? args.hooks : undefined;
+            resourceInputs["hooks"] = args ? (args.hooks ? pulumi.output(args.hooks).apply(inputs.hooksArgsProvideDefaults) : undefined) : undefined;
             resourceInputs["path"] = args ? args.path : undefined;
-            resourceInputs["permissions"] = args ? args.permissions : undefined;
+            resourceInputs["permissions"] = (args ? args.permissions : undefined) ?? "0644";
             resourceInputs["useSudo"] = (args ? args.useSudo : undefined) ?? false;
             resourceInputs["writableTempDirectory"] = args ? args.writableTempDirectory : undefined;
         } else {

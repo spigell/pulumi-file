@@ -179,6 +179,27 @@ type Hooks struct {
 	CommandAfterUpdate  *string `pulumi:"commandAfterUpdate"`
 }
 
+// Defaults sets the appropriate defaults for Hooks
+func (val *Hooks) Defaults() *Hooks {
+	if val == nil {
+		return nil
+	}
+	tmp := *val
+	if isZero(tmp.CommandAfterCreate) {
+		commandAfterCreate_ := ""
+		tmp.CommandAfterCreate = &commandAfterCreate_
+	}
+	if isZero(tmp.CommandAfterDestroy) {
+		commandAfterDestroy_ := ""
+		tmp.CommandAfterDestroy = &commandAfterDestroy_
+	}
+	if isZero(tmp.CommandAfterUpdate) {
+		commandAfterUpdate_ := ""
+		tmp.CommandAfterUpdate = &commandAfterUpdate_
+	}
+	return &tmp
+}
+
 // HooksInput is an input type that accepts HooksArgs and HooksOutput values.
 // You can construct a concrete instance of `HooksInput` via:
 //

@@ -4,6 +4,8 @@
 import * as pulumi from "@pulumi/pulumi";
 import { input as inputs, output as outputs } from "../types";
 
+import * as utilities from "../utilities";
+
 export interface ConnectionArgs {
     address?: pulumi.Input<string>;
     privateKey?: pulumi.Input<string>;
@@ -14,4 +16,15 @@ export interface HooksArgs {
     commandAfterCreate?: pulumi.Input<string>;
     commandAfterDestroy?: pulumi.Input<string>;
     commandAfterUpdate?: pulumi.Input<string>;
+}
+/**
+ * hooksArgsProvideDefaults sets the appropriate defaults for HooksArgs
+ */
+export function hooksArgsProvideDefaults(val: HooksArgs): HooksArgs {
+    return {
+        ...val,
+        commandAfterCreate: (val.commandAfterCreate) ?? "",
+        commandAfterDestroy: (val.commandAfterDestroy) ?? "",
+        commandAfterUpdate: (val.commandAfterUpdate) ?? "",
+    };
 }
