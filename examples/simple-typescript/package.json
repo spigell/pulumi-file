@@ -6,6 +6,6 @@
     },
     "dependencies": {
         "@pulumi/pulumi": "latest",
-        "@spigell/pulumi-file": "file:../../sdk/nodejs/bin"
+        "@spigell/pulumi-file": "0.0.2"
     }
 }

@@ -12,5 +12,5 @@ const peer = new file.Remote("myfile", {
     useSudo: false,
     writableTempDirectory: '/tmp',
     path: '/config/hello.txt',
-    content: 'Greetings from Pulumi!'
+    content: 'Greetings from Pulumi!\n'
 });
