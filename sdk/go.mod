@@ -1,4 +1,4 @@
-module github.com/spigell/pulumi-wgpeer/sdk/v3
+module github.com/spigell/pulumi-file/sdk
 
 go 1.16
 
