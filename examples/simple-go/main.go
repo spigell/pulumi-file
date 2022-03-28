@@ -18,13 +18,13 @@ func main() {
 			     PrivateKey: key,
 			},
 			Hooks: &file.HooksArgs{
-				CommandAfterCreate: pulumi.String("sudo bash -c 'cat /etc/hello2.txt > /etc/motd'"),
-				CommandAfterUpdate: pulumi.String("sudo bash -c 'cat /etc/hello2.txt > /etc/motd'"),
+				CommandAfterCreate: pulumi.String("sudo bash -c 'cat /etc/motd'"),
+				CommandAfterUpdate: pulumi.String("sudo bash -c 'cat /etc/motd'"),
 			},
 			UseSudo: pulumi.Bool(true),
 			WritableTempDirectory: pulumi.String("/config"),
 			Permissions: pulumi.String("0644"),
-			Path: pulumi.String("/etc/hello2.txt"),
+			Path: pulumi.String("/etc/motd"),
 			Content: pulumi.String("#Managed by Pulumi with file `resource` (GO)!\n"),
 		})
 		if err != nil {
