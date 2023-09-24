@@ -2,7 +2,6 @@ run:
   tests: true
   build-tags:
     - bench
-    - !bench
   skip-dirs:
     - cmd
 
@@ -26,8 +25,7 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - deadcode
-    - depguard
+    - unused
     - dogsled
     - dupl
     - durationcheck
@@ -48,7 +46,6 @@ linters:
     - gosec
     - gosimple
     - govet
-    - ifshort
     - ineffassign
     - misspell
     - nestif
@@ -59,13 +56,11 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - revive
     - whitespace
 

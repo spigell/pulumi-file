@@ -1,103 +1,244 @@
 {
-    "name": "file",
-    "version": "0.0.2",
+    "config": {},
+    "description": "The Pulumi File Provider enables you to create files either locally or remotely as part of the Pulumi resource model.",
+    "displayName": "File",
+    "homepage": "https://pulumi.com",
     "keywords": [
         "pulumi",
-        "utils"
+        "file",
+        "category/utility",
+        "kind/native"
     ],
-    "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/download/v0.0.2",
-    "types": {
-        "file:index:connection": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string",
-                    "replaceOnChanges": true
-                },
-                "privateKey": {
-                    "type": "string"
-                },
-                "user": {
-                    "type": "string"
-                }
+    "language": {
+        "csharp": {
+            "packageReferences": {
+                "Pulumi": "3.*"
             }
         },
-        "file:index:hooks": {
-            "type": "object",
-            "properties": {
-                "commandAfterUpdate": {
-                    "type": "string",
-                    "default": ""
-                },
-                "commandAfterCreate": {
-                    "type": "string",
-                    "default": ""
-                },
-                "commandAfterDestroy": {
-                    "type": "string",
-                    "default": ""
-                }
-            }
-        }
-    },
-    "resources": {
-        "file:index:Remote": {
-            "properties": {
-                "permissions": {
-                    "type": "string",
-                    "replaceOnChanges": true
-                },
-                "path": {
-                    "type": "string",
-                    "replaceOnChanges": true
-                },
-                "connection": {
-                    "$ref": "#/types/file:index:connection"
-                },
-                "content": {
-                    "type": "string"
-                }
-            },
-            "inputProperties": {
-                "connection": {
-                    "$ref": "#/types/file:index:connection"
-                },
-                "hooks": {
-                    "$ref": "#/types/file:index:hooks"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "permissions": {
-                    "type": "string",
-                    "default": "0644"
-                },
-                "writableTempDirectory": {
-                    "type": "string"
-                },
-                "useSudo": {
-                    "type": "boolean",
-                    "default": false
-                }
-            },
-            "requiredInput": [
-                "connection",
-                "content"
-            ]
-        }
-    },
-    "language": {
         "go": {
-            "generateResourceContainerTypes": true
+            "generateResourceContainerTypes": true,
+            "importBasePath": "github.com/spigell/pulumi-file/sdk/go/file"
+        },
+        "java": {
+            "buildFiles": "gradle",
+            "dependencies": {
+                "com.google.code.findbugs:jsr305": "3.0.2",
+                "com.google.code.gson:gson": "2.8.9",
+                "com.pulumi:pulumi": "0.6.0"
+            },
+            "gradleNexusPublishPluginVersion": "1.1.0"
         },
         "nodejs": {
-            "packageName": "@spigell/pulumi-file",
             "dependencies": {
                 "@pulumi/pulumi": "^3.0.0"
             }
+        },
+        "python": {
+            "pyproject": {
+                "enabled": true
+            },
+            "requires": {
+                "pulumi": ">=3.0.0,<4.0.0"
+            }
+        }
+    },
+    "license": "Apache-2.0",
+    "name": "file",
+    "provider": {},
+    "publisher": "Infraunlimited",
+    "repository": "https://github.com/spigell/pulumi-file",
+    "resources": {
+        "file:remote:File": {
+            "description": "A file to be created on a remote host. The connection is established via ssh.",
+            "inputProperties": {
+                "connection": {
+                    "$ref": "#/types/file:remote:Connection",
+                    "description": "The parameters with which to connect to the remote host.",
+                    "secret": true
+                },
+                "content": {
+                    "description": "The content of file",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "The path for file on remote server",
+                    "type": "string"
+                },
+                "permissions": {
+                    "default": "0664",
+                    "description": "Unix permissions for file",
+                    "type": "string"
+                },
+                "sftpPath": {
+                    "default": "/usr/lib/ssh/sftp-server",
+                    "description": "sudo mode requires a external sftp server to be running on remote host",
+                    "type": "string"
+                },
+                "triggers": {
+                    "description": "Trigger replacements on changes to this input.",
+                    "items": {
+                        "$ref": "pulumi.json#/Any"
+                    },
+                    "type": "array"
+                },
+                "useSudo": {
+                    "description": "if enabled then use sudo for copy command instead of direct copy",
+                    "type": "boolean"
+                }
+            },
+            "properties": {
+                "connection": {
+                    "$ref": "#/types/file:remote:Connection",
+                    "description": "The parameters with which to connect to the remote host.",
+                    "secret": true
+                },
+                "content": {
+                    "description": "The content of file",
+                    "type": "string"
+                },
+                "md5sum": {
+                    "description": "The md5sum of the uploaded file",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "The path for file on remote server",
+                    "type": "string"
+                },
+                "permissions": {
+                    "default": "0664",
+                    "description": "Unix permissions for file",
+                    "type": "string"
+                },
+                "sftpPath": {
+                    "default": "/usr/lib/ssh/sftp-server",
+                    "description": "sudo mode requires a external sftp server to be running on remote host",
+                    "type": "string"
+                },
+                "triggers": {
+                    "description": "Trigger replacements on changes to this input.",
+                    "items": {
+                        "$ref": "pulumi.json#/Any"
+                    },
+                    "type": "array"
+                },
+                "useSudo": {
+                    "description": "if enabled then use sudo for copy command instead of direct copy",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "connection",
+                "path",
+                "md5sum"
+            ],
+            "requiredInputs": [
+                "connection",
+                "path"
+            ]
+        }
+    },
+    "types": {
+        "file:remote:Connection": {
+            "description": "Instructions for how to connect to a remote endpoint.",
+            "properties": {
+                "agentSocketPath": {
+                    "description": "SSH Agent socket path. Default to environment variable SSH_AUTH_SOCK if present.",
+                    "type": "string"
+                },
+                "dialErrorLimit": {
+                    "default": 10,
+                    "description": "Max allowed errors on trying to dial the remote host. -1 set count to unlimited. Default value is 10.",
+                    "type": "integer"
+                },
+                "host": {
+                    "description": "The address of the resource to connect to.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "The password we should use for the connection.",
+                    "type": "string"
+                },
+                "perDialTimeout": {
+                    "default": 15,
+                    "description": "Max number of seconds for each dial attempt. 0 implies no maximum. Default value is 15 seconds.",
+                    "type": "integer"
+                },
+                "port": {
+                    "default": 22,
+                    "description": "The port to connect to.",
+                    "type": "integer"
+                },
+                "privateKey": {
+                    "description": "The contents of an SSH key to use for the connection. This takes preference over the password if provided.",
+                    "type": "string"
+                },
+                "privateKeyPassword": {
+                    "description": "The password to use in case the private key is encrypted.",
+                    "type": "string"
+                },
+                "proxy": {
+                    "$ref": "#/types/file:remote:ProxyConnection",
+                    "description": "The connection settings for the bastion/proxy host."
+                },
+                "user": {
+                    "default": "root",
+                    "description": "The user that we should use for the connection.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "host"
+            ],
+            "type": "object"
+        },
+        "file:remote:ProxyConnection": {
+            "description": "Instructions for how to connect to a remote endpoint via a bastion host.",
+            "properties": {
+                "agentSocketPath": {
+                    "description": "SSH Agent socket path. Default to environment variable SSH_AUTH_SOCK if present.",
+                    "type": "string"
+                },
+                "dialErrorLimit": {
+                    "default": 10,
+                    "description": "Max allowed errors on trying to dial the remote host. -1 set count to unlimited. Default value is 10.",
+                    "type": "integer"
+                },
+                "host": {
+                    "description": "The address of the bastion host to connect to.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "The password we should use for the connection to the bastion host.",
+                    "type": "string"
+                },
+                "perDialTimeout": {
+                    "default": 15,
+                    "description": "Max number of seconds for each dial attempt. 0 implies no maximum. Default value is 15 seconds.",
+                    "type": "integer"
+                },
+                "port": {
+                    "default": 22,
+                    "description": "The port of the bastion host to connect to.",
+                    "type": "integer"
+                },
+                "privateKey": {
+                    "description": "The contents of an SSH key to use for the connection. This takes preference over the password if provided.",
+                    "type": "string"
+                },
+                "privateKeyPassword": {
+                    "description": "The password to use in case the private key is encrypted.",
+                    "type": "string"
+                },
+                "user": {
+                    "default": "root",
+                    "description": "The user that we should use for the connection to the bastion host.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "host"
+            ],
+            "type": "object"
         }
     }
 }
