@@ -1,6 +1,6 @@
 {
-    "name": "@pulumi/file",
-    "version": "${VERSION}",
+    "name": "@spigell/file",
+    "version": "0.0.3",
     "keywords": [
         "pulumi",
         "file",
