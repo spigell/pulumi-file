@@ -86,7 +86,7 @@ namespace Pulumi.File.Remote
             var defaultOptions = new CustomResourceOptions
             {
                 Version = Utilities.Version,
-                PluginDownloadURL = "github://spigell/pulumi-file",
+                PluginDownloadURL = "github://api.github.com/spigell/pulumi-file",
                 AdditionalSecretOutputs =
                 {
                     "connection",

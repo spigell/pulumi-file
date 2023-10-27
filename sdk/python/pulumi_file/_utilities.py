@@ -266,4 +266,4 @@ def configure(val, cls: type, input: bool):
     return val
 
 def get_plugin_download_url():
-	return "github://spigell/pulumi-file"
+	return "github://api.github.com/spigell/pulumi-file"

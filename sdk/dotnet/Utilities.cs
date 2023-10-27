@@ -53,7 +53,7 @@ namespace Pulumi.File
         {
             var dst = src ?? new global::Pulumi.InvokeOptions{};
             dst.Version = src?.Version ?? Version;
-            dst.PluginDownloadURL = src?.PluginDownloadURL ?? "github://spigell/pulumi-file";
+            dst.PluginDownloadURL = src?.PluginDownloadURL ?? "github://api.github.com/spigell/pulumi-file";
             return dst;
         }
 
