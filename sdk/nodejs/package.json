@@ -23,6 +23,6 @@
     "pulumi": {
         "resource": true,
         "name": "file",
-        "server": "https://github.com/spigell/pulumi-file/releases/latest/download"
+        "server": "github://spigell/pulumi-file"
     }
 }

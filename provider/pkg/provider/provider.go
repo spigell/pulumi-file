@@ -44,7 +44,7 @@ func NewProvider() p.Provider {
 			License:    "Apache-2.0",
 			Repository: "https://github.com/spigell/pulumi-file",
 			Publisher:  "spigell",
-                        PluginDownloadURL: "https://github.com/spigell/pulumi-file/releases/latest/download",
+                        PluginDownloadURL: "github://spigell/pulumi-file",
 			LanguageMap: map[string]any{
 				"csharp": map[string]any{
 					"packageReferences": map[string]string{
