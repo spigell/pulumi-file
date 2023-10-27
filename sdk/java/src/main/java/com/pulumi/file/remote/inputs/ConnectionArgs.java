@@ -7,7 +7,6 @@ import com.pulumi.core.Output;
 import com.pulumi.core.annotations.Import;
 import com.pulumi.core.internal.Codegen;
 import com.pulumi.file.remote.inputs.ProxyConnectionArgs;
-import java.lang.Double;
 import java.lang.Integer;
 import java.lang.String;
 import java.util.Objects;
@@ -103,13 +102,13 @@ public final class ConnectionArgs extends com.pulumi.resources.ResourceArgs {
      * 
      */
     @Import(name="port")
-    private @Nullable Output<Double> port;
+    private @Nullable Output<Integer> port;
 
     /**
      * @return The port to connect to.
      * 
      */
-    public Optional<Output<Double>> port() {
+    public Optional<Output<Integer>> port() {
         return Optional.ofNullable(this.port);
     }
 
@@ -317,7 +316,7 @@ public final class ConnectionArgs extends com.pulumi.resources.ResourceArgs {
          * @return builder
          * 
          */
-        public Builder port(@Nullable Output<Double> port) {
+        public Builder port(@Nullable Output<Integer> port) {
             $.port = port;
             return this;
         }
@@ -328,7 +327,7 @@ public final class ConnectionArgs extends com.pulumi.resources.ResourceArgs {
          * @return builder
          * 
          */
-        public Builder port(Double port) {
+        public Builder port(Integer port) {
             return port(Output.of(port));
         }
 
@@ -420,7 +419,7 @@ public final class ConnectionArgs extends com.pulumi.resources.ResourceArgs {
             $.dialErrorLimit = Codegen.integerProp("dialErrorLimit").output().arg($.dialErrorLimit).def(10).getNullable();
             $.host = Objects.requireNonNull($.host, "expected parameter 'host' to be non-null");
             $.perDialTimeout = Codegen.integerProp("perDialTimeout").output().arg($.perDialTimeout).def(15).getNullable();
-            $.port = Codegen.doubleProp("port").output().arg($.port).def(2.2e+01).getNullable();
+            $.port = Codegen.integerProp("port").output().arg($.port).def(22).getNullable();
             $.user = Codegen.stringProp("user").output().arg($.user).def("root").getNullable();
             return $;
         }

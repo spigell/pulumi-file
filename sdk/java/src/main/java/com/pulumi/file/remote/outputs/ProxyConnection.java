@@ -4,7 +4,6 @@
 package com.pulumi.file.remote.outputs;
 
 import com.pulumi.core.annotations.CustomType;
-import java.lang.Double;
 import java.lang.Integer;
 import java.lang.String;
 import java.util.Objects;
@@ -42,7 +41,7 @@ public final class ProxyConnection {
      * @return The port of the bastion host to connect to.
      * 
      */
-    private @Nullable Double port;
+    private @Nullable Integer port;
     /**
      * @return The contents of an SSH key to use for the connection. This takes preference over the password if provided.
      * 
@@ -99,7 +98,7 @@ public final class ProxyConnection {
      * @return The port of the bastion host to connect to.
      * 
      */
-    public Optional<Double> port() {
+    public Optional<Integer> port() {
         return Optional.ofNullable(this.port);
     }
     /**
@@ -138,7 +137,7 @@ public final class ProxyConnection {
         private String host;
         private @Nullable String password;
         private @Nullable Integer perDialTimeout;
-        private @Nullable Double port;
+        private @Nullable Integer port;
         private @Nullable String privateKey;
         private @Nullable String privateKeyPassword;
         private @Nullable String user;
@@ -182,7 +181,7 @@ public final class ProxyConnection {
             return this;
         }
         @CustomType.Setter
-        public Builder port(@Nullable Double port) {
+        public Builder port(@Nullable Integer port) {
             this.port = port;
             return this;
         }
@@ -202,17 +201,17 @@ public final class ProxyConnection {
             return this;
         }
         public ProxyConnection build() {
-            final var o = new ProxyConnection();
-            o.agentSocketPath = agentSocketPath;
-            o.dialErrorLimit = dialErrorLimit;
-            o.host = host;
-            o.password = password;
-            o.perDialTimeout = perDialTimeout;
-            o.port = port;
-            o.privateKey = privateKey;
-            o.privateKeyPassword = privateKeyPassword;
-            o.user = user;
-            return o;
+            final var _resultValue = new ProxyConnection();
+            _resultValue.agentSocketPath = agentSocketPath;
+            _resultValue.dialErrorLimit = dialErrorLimit;
+            _resultValue.host = host;
+            _resultValue.password = password;
+            _resultValue.perDialTimeout = perDialTimeout;
+            _resultValue.port = port;
+            _resultValue.privateKey = privateKey;
+            _resultValue.privateKeyPassword = privateKeyPassword;
+            _resultValue.user = user;
+            return _resultValue;
         }
     }
 }

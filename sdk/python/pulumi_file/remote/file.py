@@ -6,7 +6,7 @@ import copy
 import warnings
 import pulumi
 import pulumi.runtime
-from typing import Any, Mapping, Optional, Sequence, Union, overload
+from typing import Any, Callable, Mapping, Optional, Sequence, Union, overload
 from .. import _utilities
 from . import outputs
 from ._inputs import *
@@ -18,33 +18,68 @@ class FileArgs:
     def __init__(__self__, *,
                  connection: pulumi.Input['ConnectionArgs'],
                  path: pulumi.Input[str],
+                 content: Optional[pulumi.Input[str]] = None,
                  permissions: Optional[pulumi.Input[str]] = None,
-                 stdin: Optional[pulumi.Input[str]] = None,
+                 sftp_path: Optional[pulumi.Input[str]] = None,
                  triggers: Optional[pulumi.Input[Sequence[Any]]] = None,
-                 use_sudo: Optional[pulumi.Input[bool]] = None,
-                 writeble_directory_for_sudo_mode: Optional[pulumi.Input[str]] = None):
+                 use_sudo: Optional[pulumi.Input[bool]] = None):
         """
         The set of arguments for constructing a File resource.
         :param pulumi.Input['ConnectionArgs'] connection: The parameters with which to connect to the remote host.
         :param pulumi.Input[str] path: The path for file on remote server
+        :param pulumi.Input[str] content: The content of file
         :param pulumi.Input[str] permissions: Unix permissions for file
-        :param pulumi.Input[str] stdin: The content of file
+        :param pulumi.Input[str] sftp_path: sudo mode requires a external sftp server to be running on remote host
         :param pulumi.Input[Sequence[Any]] triggers: Trigger replacements on changes to this input.
         :param pulumi.Input[bool] use_sudo: if enabled then use sudo for copy command instead of direct copy
-        :param pulumi.Input[str] writeble_directory_for_sudo_mode: if sudo enabled will use this directory for temporary copy command
         """
-        pulumi.set(__self__, "connection", connection)
-        pulumi.set(__self__, "path", path)
+        FileArgs._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            connection=connection,
+            path=path,
+            content=content,
+            permissions=permissions,
+            sftp_path=sftp_path,
+            triggers=triggers,
+            use_sudo=use_sudo,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             connection: Optional[pulumi.Input['ConnectionArgs']] = None,
+             path: Optional[pulumi.Input[str]] = None,
+             content: Optional[pulumi.Input[str]] = None,
+             permissions: Optional[pulumi.Input[str]] = None,
+             sftp_path: Optional[pulumi.Input[str]] = None,
+             triggers: Optional[pulumi.Input[Sequence[Any]]] = None,
+             use_sudo: Optional[pulumi.Input[bool]] = None,
+             opts: Optional[pulumi.ResourceOptions] = None,
+             **kwargs):
+        if connection is None:
+            raise TypeError("Missing 'connection' argument")
+        if path is None:
+            raise TypeError("Missing 'path' argument")
+        if sftp_path is None and 'sftpPath' in kwargs:
+            sftp_path = kwargs['sftpPath']
+        if use_sudo is None and 'useSudo' in kwargs:
+            use_sudo = kwargs['useSudo']
+
+        _setter("connection", connection)
+        _setter("path", path)
+        if content is not None:
+            _setter("content", content)
+        if permissions is None:
+            permissions = '0664'
         if permissions is not None:
-            pulumi.set(__self__, "permissions", permissions)
-        if stdin is not None:
-            pulumi.set(__self__, "stdin", stdin)
+            _setter("permissions", permissions)
+        if sftp_path is None:
+            sftp_path = '/usr/lib/ssh/sftp-server'
+        if sftp_path is not None:
+            _setter("sftp_path", sftp_path)
         if triggers is not None:
-            pulumi.set(__self__, "triggers", triggers)
+            _setter("triggers", triggers)
         if use_sudo is not None:
-            pulumi.set(__self__, "use_sudo", use_sudo)
-        if writeble_directory_for_sudo_mode is not None:
-            pulumi.set(__self__, "writeble_directory_for_sudo_mode", writeble_directory_for_sudo_mode)
+            _setter("use_sudo", use_sudo)
 
     @property
     @pulumi.getter
@@ -72,6 +107,18 @@ class FileArgs:
 
     @property
     @pulumi.getter
+    def content(self) -> Optional[pulumi.Input[str]]:
+        """
+        The content of file
+        """
+        return pulumi.get(self, "content")
+
+    @content.setter
+    def content(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "content", value)
+
+    @property
+    @pulumi.getter
     def permissions(self) -> Optional[pulumi.Input[str]]:
         """
         Unix permissions for file
@@ -83,16 +130,16 @@ class FileArgs:
         pulumi.set(self, "permissions", value)
 
     @property
-    @pulumi.getter
-    def stdin(self) -> Optional[pulumi.Input[str]]:
+    @pulumi.getter(name="sftpPath")
+    def sftp_path(self) -> Optional[pulumi.Input[str]]:
         """
-        The content of file
+        sudo mode requires a external sftp server to be running on remote host
         """
-        return pulumi.get(self, "stdin")
+        return pulumi.get(self, "sftp_path")
 
-    @stdin.setter
-    def stdin(self, value: Optional[pulumi.Input[str]]):
-        pulumi.set(self, "stdin", value)
+    @sftp_path.setter
+    def sftp_path(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "sftp_path", value)
 
     @property
     @pulumi.getter
@@ -118,18 +165,6 @@ class FileArgs:
     def use_sudo(self, value: Optional[pulumi.Input[bool]]):
         pulumi.set(self, "use_sudo", value)
 
-    @property
-    @pulumi.getter(name="writebleDirectoryForSudoMode")
-    def writeble_directory_for_sudo_mode(self) -> Optional[pulumi.Input[str]]:
-        """
-        if sudo enabled will use this directory for temporary copy command
-        """
-        return pulumi.get(self, "writeble_directory_for_sudo_mode")
-
-    @writeble_directory_for_sudo_mode.setter
-    def writeble_directory_for_sudo_mode(self, value: Optional[pulumi.Input[str]]):
-        pulumi.set(self, "writeble_directory_for_sudo_mode", value)
-
 
 class File(pulumi.CustomResource):
     @overload
@@ -137,12 +172,12 @@ class File(pulumi.CustomResource):
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
                  connection: Optional[pulumi.Input[pulumi.InputType['ConnectionArgs']]] = None,
+                 content: Optional[pulumi.Input[str]] = None,
                  path: Optional[pulumi.Input[str]] = None,
                  permissions: Optional[pulumi.Input[str]] = None,
-                 stdin: Optional[pulumi.Input[str]] = None,
+                 sftp_path: Optional[pulumi.Input[str]] = None,
                  triggers: Optional[pulumi.Input[Sequence[Any]]] = None,
                  use_sudo: Optional[pulumi.Input[bool]] = None,
-                 writeble_directory_for_sudo_mode: Optional[pulumi.Input[str]] = None,
                  __props__=None):
         """
         A file to be created on a remote host. The connection is established via ssh.
@@ -150,12 +185,12 @@ class File(pulumi.CustomResource):
         :param str resource_name: The name of the resource.
         :param pulumi.ResourceOptions opts: Options for the resource.
         :param pulumi.Input[pulumi.InputType['ConnectionArgs']] connection: The parameters with which to connect to the remote host.
+        :param pulumi.Input[str] content: The content of file
         :param pulumi.Input[str] path: The path for file on remote server
         :param pulumi.Input[str] permissions: Unix permissions for file
-        :param pulumi.Input[str] stdin: The content of file
+        :param pulumi.Input[str] sftp_path: sudo mode requires a external sftp server to be running on remote host
         :param pulumi.Input[Sequence[Any]] triggers: Trigger replacements on changes to this input.
         :param pulumi.Input[bool] use_sudo: if enabled then use sudo for copy command instead of direct copy
-        :param pulumi.Input[str] writeble_directory_for_sudo_mode: if sudo enabled will use this directory for temporary copy command
         """
         ...
     @overload
@@ -176,18 +211,22 @@ class File(pulumi.CustomResource):
         if resource_args is not None:
             __self__._internal_init(resource_name, opts, **resource_args.__dict__)
         else:
+            kwargs = kwargs or {}
+            def _setter(key, value):
+                kwargs[key] = value
+            FileArgs._configure(_setter, **kwargs)
             __self__._internal_init(resource_name, *args, **kwargs)
 
     def _internal_init(__self__,
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
                  connection: Optional[pulumi.Input[pulumi.InputType['ConnectionArgs']]] = None,
+                 content: Optional[pulumi.Input[str]] = None,
                  path: Optional[pulumi.Input[str]] = None,
                  permissions: Optional[pulumi.Input[str]] = None,
-                 stdin: Optional[pulumi.Input[str]] = None,
+                 sftp_path: Optional[pulumi.Input[str]] = None,
                  triggers: Optional[pulumi.Input[Sequence[Any]]] = None,
                  use_sudo: Optional[pulumi.Input[bool]] = None,
-                 writeble_directory_for_sudo_mode: Optional[pulumi.Input[str]] = None,
                  __props__=None):
         opts = pulumi.ResourceOptions.merge(_utilities.get_resource_opts_defaults(), opts)
         if not isinstance(opts, pulumi.ResourceOptions):
@@ -197,17 +236,22 @@ class File(pulumi.CustomResource):
                 raise TypeError('__props__ is only valid when passed in combination with a valid opts.id to get an existing resource')
             __props__ = FileArgs.__new__(FileArgs)
 
+            connection = _utilities.configure(connection, ConnectionArgs, True)
             if connection is None and not opts.urn:
                 raise TypeError("Missing required property 'connection'")
             __props__.__dict__["connection"] = None if connection is None else pulumi.Output.secret(connection)
+            __props__.__dict__["content"] = content
             if path is None and not opts.urn:
                 raise TypeError("Missing required property 'path'")
             __props__.__dict__["path"] = path
+            if permissions is None:
+                permissions = '0664'
             __props__.__dict__["permissions"] = permissions
-            __props__.__dict__["stdin"] = stdin
+            if sftp_path is None:
+                sftp_path = '/usr/lib/ssh/sftp-server'
+            __props__.__dict__["sftp_path"] = sftp_path
             __props__.__dict__["triggers"] = triggers
             __props__.__dict__["use_sudo"] = use_sudo
-            __props__.__dict__["writeble_directory_for_sudo_mode"] = writeble_directory_for_sudo_mode
             __props__.__dict__["md5sum"] = None
         secret_opts = pulumi.ResourceOptions(additional_secret_outputs=["connection"])
         opts = pulumi.ResourceOptions.merge(opts, secret_opts)
@@ -234,13 +278,13 @@ class File(pulumi.CustomResource):
         __props__ = FileArgs.__new__(FileArgs)
 
         __props__.__dict__["connection"] = None
+        __props__.__dict__["content"] = None
         __props__.__dict__["md5sum"] = None
         __props__.__dict__["path"] = None
         __props__.__dict__["permissions"] = None
-        __props__.__dict__["stdin"] = None
+        __props__.__dict__["sftp_path"] = None
         __props__.__dict__["triggers"] = None
         __props__.__dict__["use_sudo"] = None
-        __props__.__dict__["writeble_directory_for_sudo_mode"] = None
         return File(resource_name, opts=opts, __props__=__props__)
 
     @property
@@ -250,6 +294,14 @@ class File(pulumi.CustomResource):
         The parameters with which to connect to the remote host.
         """
         return pulumi.get(self, "connection")
+
+    @property
+    @pulumi.getter
+    def content(self) -> pulumi.Output[Optional[str]]:
+        """
+        The content of file
+        """
+        return pulumi.get(self, "content")
 
     @property
     @pulumi.getter
@@ -276,12 +328,12 @@ class File(pulumi.CustomResource):
         return pulumi.get(self, "permissions")
 
     @property
-    @pulumi.getter
-    def stdin(self) -> pulumi.Output[Optional[str]]:
+    @pulumi.getter(name="sftpPath")
+    def sftp_path(self) -> pulumi.Output[Optional[str]]:
         """
-        The content of file
+        sudo mode requires a external sftp server to be running on remote host
         """
-        return pulumi.get(self, "stdin")
+        return pulumi.get(self, "sftp_path")
 
     @property
     @pulumi.getter
@@ -298,12 +350,4 @@ class File(pulumi.CustomResource):
         if enabled then use sudo for copy command instead of direct copy
         """
         return pulumi.get(self, "use_sudo")
-
-    @property
-    @pulumi.getter(name="writebleDirectoryForSudoMode")
-    def writeble_directory_for_sudo_mode(self) -> pulumi.Output[Optional[str]]:
-        """
-        if sudo enabled will use this directory for temporary copy command
-        """
-        return pulumi.get(self, "writeble_directory_for_sudo_mode")
 

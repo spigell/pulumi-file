@@ -22,6 +22,12 @@ namespace Pulumi.File.Remote
         public Output<Outputs.Connection> Connection { get; private set; } = null!;
 
         /// <summary>
+        /// The content of file
+        /// </summary>
+        [Output("content")]
+        public Output<string?> Content { get; private set; } = null!;
+
+        /// <summary>
         /// The md5sum of the uploaded file
         /// </summary>
         [Output("md5sum")]
@@ -40,10 +46,10 @@ namespace Pulumi.File.Remote
         public Output<string?> Permissions { get; private set; } = null!;
 
         /// <summary>
-        /// The content of file
+        /// sudo mode requires a external sftp server to be running on remote host
         /// </summary>
-        [Output("stdin")]
-        public Output<string?> Stdin { get; private set; } = null!;
+        [Output("sftpPath")]
+        public Output<string?> SftpPath { get; private set; } = null!;
 
         /// <summary>
         /// Trigger replacements on changes to this input.
@@ -56,12 +62,6 @@ namespace Pulumi.File.Remote
         /// </summary>
         [Output("useSudo")]
         public Output<bool?> UseSudo { get; private set; } = null!;
-
-        /// <summary>
-        /// if sudo enabled will use this directory for temporary copy command
-        /// </summary>
-        [Output("writebleDirectoryForSudoMode")]
-        public Output<string?> WritebleDirectoryForSudoMode { get; private set; } = null!;
 
 
         /// <summary>
@@ -86,6 +86,7 @@ namespace Pulumi.File.Remote
             var defaultOptions = new CustomResourceOptions
             {
                 Version = Utilities.Version,
+                PluginDownloadURL = "https://github.com/spigell/pulumi-file/releases/latest/download",
                 AdditionalSecretOutputs =
                 {
                     "connection",
@@ -129,6 +130,12 @@ namespace Pulumi.File.Remote
         }
 
         /// <summary>
+        /// The content of file
+        /// </summary>
+        [Input("content")]
+        public Input<string>? Content { get; set; }
+
+        /// <summary>
         /// The path for file on remote server
         /// </summary>
         [Input("path", required: true)]
@@ -141,10 +148,10 @@ namespace Pulumi.File.Remote
         public Input<string>? Permissions { get; set; }
 
         /// <summary>
-        /// The content of file
+        /// sudo mode requires a external sftp server to be running on remote host
         /// </summary>
-        [Input("stdin")]
-        public Input<string>? Stdin { get; set; }
+        [Input("sftpPath")]
+        public Input<string>? SftpPath { get; set; }
 
         [Input("triggers")]
         private InputList<object>? _triggers;
@@ -164,14 +171,10 @@ namespace Pulumi.File.Remote
         [Input("useSudo")]
         public Input<bool>? UseSudo { get; set; }
 
-        /// <summary>
-        /// if sudo enabled will use this directory for temporary copy command
-        /// </summary>
-        [Input("writebleDirectoryForSudoMode")]
-        public Input<string>? WritebleDirectoryForSudoMode { get; set; }
-
         public FileArgs()
         {
+            Permissions = "0664";
+            SftpPath = "/usr/lib/ssh/sftp-server";
         }
         public static new FileArgs Empty => new FileArgs();
     }

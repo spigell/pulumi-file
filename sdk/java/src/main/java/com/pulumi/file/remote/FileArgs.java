@@ -5,6 +5,7 @@ package com.pulumi.file.remote;
 
 import com.pulumi.core.Output;
 import com.pulumi.core.annotations.Import;
+import com.pulumi.core.internal.Codegen;
 import com.pulumi.file.remote.inputs.ConnectionArgs;
 import java.lang.Boolean;
 import java.lang.Object;
@@ -32,6 +33,21 @@ public final class FileArgs extends com.pulumi.resources.ResourceArgs {
      */
     public Output<ConnectionArgs> connection() {
         return this.connection;
+    }
+
+    /**
+     * The content of file
+     * 
+     */
+    @Import(name="content")
+    private @Nullable Output<String> content;
+
+    /**
+     * @return The content of file
+     * 
+     */
+    public Optional<Output<String>> content() {
+        return Optional.ofNullable(this.content);
     }
 
     /**
@@ -65,18 +81,18 @@ public final class FileArgs extends com.pulumi.resources.ResourceArgs {
     }
 
     /**
-     * The content of file
+     * sudo mode requires a external sftp server to be running on remote host
      * 
      */
-    @Import(name="stdin")
-    private @Nullable Output<String> stdin;
+    @Import(name="sftpPath")
+    private @Nullable Output<String> sftpPath;
 
     /**
-     * @return The content of file
+     * @return sudo mode requires a external sftp server to be running on remote host
      * 
      */
-    public Optional<Output<String>> stdin() {
-        return Optional.ofNullable(this.stdin);
+    public Optional<Output<String>> sftpPath() {
+        return Optional.ofNullable(this.sftpPath);
     }
 
     /**
@@ -109,31 +125,16 @@ public final class FileArgs extends com.pulumi.resources.ResourceArgs {
         return Optional.ofNullable(this.useSudo);
     }
 
-    /**
-     * if sudo enabled will use this directory for temporary copy command
-     * 
-     */
-    @Import(name="writebleDirectoryForSudoMode")
-    private @Nullable Output<String> writebleDirectoryForSudoMode;
-
-    /**
-     * @return if sudo enabled will use this directory for temporary copy command
-     * 
-     */
-    public Optional<Output<String>> writebleDirectoryForSudoMode() {
-        return Optional.ofNullable(this.writebleDirectoryForSudoMode);
-    }
-
     private FileArgs() {}
 
     private FileArgs(FileArgs $) {
         this.connection = $.connection;
+        this.content = $.content;
         this.path = $.path;
         this.permissions = $.permissions;
-        this.stdin = $.stdin;
+        this.sftpPath = $.sftpPath;
         this.triggers = $.triggers;
         this.useSudo = $.useSudo;
-        this.writebleDirectoryForSudoMode = $.writebleDirectoryForSudoMode;
     }
 
     public static Builder builder() {
@@ -173,6 +174,27 @@ public final class FileArgs extends com.pulumi.resources.ResourceArgs {
          */
         public Builder connection(ConnectionArgs connection) {
             return connection(Output.of(connection));
+        }
+
+        /**
+         * @param content The content of file
+         * 
+         * @return builder
+         * 
+         */
+        public Builder content(@Nullable Output<String> content) {
+            $.content = content;
+            return this;
+        }
+
+        /**
+         * @param content The content of file
+         * 
+         * @return builder
+         * 
+         */
+        public Builder content(String content) {
+            return content(Output.of(content));
         }
 
         /**
@@ -218,24 +240,24 @@ public final class FileArgs extends com.pulumi.resources.ResourceArgs {
         }
 
         /**
-         * @param stdin The content of file
+         * @param sftpPath sudo mode requires a external sftp server to be running on remote host
          * 
          * @return builder
          * 
          */
-        public Builder stdin(@Nullable Output<String> stdin) {
-            $.stdin = stdin;
+        public Builder sftpPath(@Nullable Output<String> sftpPath) {
+            $.sftpPath = sftpPath;
             return this;
         }
 
         /**
-         * @param stdin The content of file
+         * @param sftpPath sudo mode requires a external sftp server to be running on remote host
          * 
          * @return builder
          * 
          */
-        public Builder stdin(String stdin) {
-            return stdin(Output.of(stdin));
+        public Builder sftpPath(String sftpPath) {
+            return sftpPath(Output.of(sftpPath));
         }
 
         /**
@@ -290,30 +312,11 @@ public final class FileArgs extends com.pulumi.resources.ResourceArgs {
             return useSudo(Output.of(useSudo));
         }
 
-        /**
-         * @param writebleDirectoryForSudoMode if sudo enabled will use this directory for temporary copy command
-         * 
-         * @return builder
-         * 
-         */
-        public Builder writebleDirectoryForSudoMode(@Nullable Output<String> writebleDirectoryForSudoMode) {
-            $.writebleDirectoryForSudoMode = writebleDirectoryForSudoMode;
-            return this;
-        }
-
-        /**
-         * @param writebleDirectoryForSudoMode if sudo enabled will use this directory for temporary copy command
-         * 
-         * @return builder
-         * 
-         */
-        public Builder writebleDirectoryForSudoMode(String writebleDirectoryForSudoMode) {
-            return writebleDirectoryForSudoMode(Output.of(writebleDirectoryForSudoMode));
-        }
-
         public FileArgs build() {
             $.connection = Objects.requireNonNull($.connection, "expected parameter 'connection' to be non-null");
             $.path = Objects.requireNonNull($.path, "expected parameter 'path' to be non-null");
+            $.permissions = Codegen.stringProp("permissions").output().arg($.permissions).def("0664").getNullable();
+            $.sftpPath = Codegen.stringProp("sftpPath").output().arg($.sftpPath).def("/usr/lib/ssh/sftp-server").getNullable();
             return $;
         }
     }

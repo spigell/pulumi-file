@@ -1,6 +1,6 @@
 {
-    "name": "@spigell/file",
-    "version": "0.0.3",
+    "name": "@pulumi/file",
+    "version": "${VERSION}",
     "keywords": [
         "pulumi",
         "file",
@@ -22,6 +22,7 @@
     },
     "pulumi": {
         "resource": true,
-        "name": "file"
+        "name": "file",
+        "server": "https://github.com/spigell/pulumi-file/releases/latest/download"
     }
 }

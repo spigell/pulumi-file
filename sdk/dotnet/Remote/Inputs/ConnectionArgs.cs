@@ -49,7 +49,7 @@ namespace Pulumi.File.Remote.Inputs
         /// The port to connect to.
         /// </summary>
         [Input("port")]
-        public Input<double>? Port { get; set; }
+        public Input<int>? Port { get; set; }
 
         /// <summary>
         /// The contents of an SSH key to use for the connection. This takes preference over the password if provided.

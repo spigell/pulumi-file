@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Infraunlimited</Authors>
-    <Company>Infraunlimited</Company>
+    <Authors>spigell</Authors>
+    <Company>spigell</Company>
     <Description>The Pulumi File Provider enables you to create files either locally or remotely as part of the Pulumi resource model.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://pulumi.com</PackageProjectUrl>

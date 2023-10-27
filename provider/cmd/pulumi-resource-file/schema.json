@@ -44,8 +44,9 @@
     },
     "license": "Apache-2.0",
     "name": "file",
+    "pluginDownloadURL": "https://github.com/spigell/pulumi-file/releases/latest/download",
     "provider": {},
-    "publisher": "Infraunlimited",
+    "publisher": "spigell",
     "repository": "https://github.com/spigell/pulumi-file",
     "resources": {
         "file:remote:File": {

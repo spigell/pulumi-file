@@ -39,7 +39,7 @@ namespace Pulumi.File.Remote.Outputs
         /// <summary>
         /// The port of the bastion host to connect to.
         /// </summary>
-        public readonly double? Port;
+        public readonly int? Port;
         /// <summary>
         /// The contents of an SSH key to use for the connection. This takes preference over the password if provided.
         /// </summary>
@@ -65,7 +65,7 @@ namespace Pulumi.File.Remote.Outputs
 
             int? perDialTimeout,
 
-            double? port,
+            int? port,
 
             string? privateKey,
 

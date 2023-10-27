@@ -6,7 +6,7 @@ import copy
 import warnings
 import pulumi
 import pulumi.runtime
-from typing import Any, Mapping, Optional, Sequence, Union, overload
+from typing import Any, Callable, Mapping, Optional, Sequence, Union, overload
 from .. import _utilities
 from . import outputs
 
@@ -51,7 +51,7 @@ class Connection(dict):
                  dial_error_limit: Optional[int] = None,
                  password: Optional[str] = None,
                  per_dial_timeout: Optional[int] = None,
-                 port: Optional[float] = None,
+                 port: Optional[int] = None,
                  private_key: Optional[str] = None,
                  private_key_password: Optional[str] = None,
                  proxy: Optional['outputs.ProxyConnection'] = None,
@@ -63,39 +63,80 @@ class Connection(dict):
         :param int dial_error_limit: Max allowed errors on trying to dial the remote host. -1 set count to unlimited. Default value is 10.
         :param str password: The password we should use for the connection.
         :param int per_dial_timeout: Max number of seconds for each dial attempt. 0 implies no maximum. Default value is 15 seconds.
-        :param float port: The port to connect to.
+        :param int port: The port to connect to.
         :param str private_key: The contents of an SSH key to use for the connection. This takes preference over the password if provided.
         :param str private_key_password: The password to use in case the private key is encrypted.
         :param 'ProxyConnection' proxy: The connection settings for the bastion/proxy host.
         :param str user: The user that we should use for the connection.
         """
-        pulumi.set(__self__, "host", host)
+        Connection._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            host=host,
+            agent_socket_path=agent_socket_path,
+            dial_error_limit=dial_error_limit,
+            password=password,
+            per_dial_timeout=per_dial_timeout,
+            port=port,
+            private_key=private_key,
+            private_key_password=private_key_password,
+            proxy=proxy,
+            user=user,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             host: Optional[str] = None,
+             agent_socket_path: Optional[str] = None,
+             dial_error_limit: Optional[int] = None,
+             password: Optional[str] = None,
+             per_dial_timeout: Optional[int] = None,
+             port: Optional[int] = None,
+             private_key: Optional[str] = None,
+             private_key_password: Optional[str] = None,
+             proxy: Optional['outputs.ProxyConnection'] = None,
+             user: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions] = None,
+             **kwargs):
+        if host is None:
+            raise TypeError("Missing 'host' argument")
+        if agent_socket_path is None and 'agentSocketPath' in kwargs:
+            agent_socket_path = kwargs['agentSocketPath']
+        if dial_error_limit is None and 'dialErrorLimit' in kwargs:
+            dial_error_limit = kwargs['dialErrorLimit']
+        if per_dial_timeout is None and 'perDialTimeout' in kwargs:
+            per_dial_timeout = kwargs['perDialTimeout']
+        if private_key is None and 'privateKey' in kwargs:
+            private_key = kwargs['privateKey']
+        if private_key_password is None and 'privateKeyPassword' in kwargs:
+            private_key_password = kwargs['privateKeyPassword']
+
+        _setter("host", host)
         if agent_socket_path is not None:
-            pulumi.set(__self__, "agent_socket_path", agent_socket_path)
+            _setter("agent_socket_path", agent_socket_path)
         if dial_error_limit is None:
             dial_error_limit = 10
         if dial_error_limit is not None:
-            pulumi.set(__self__, "dial_error_limit", dial_error_limit)
+            _setter("dial_error_limit", dial_error_limit)
         if password is not None:
-            pulumi.set(__self__, "password", password)
+            _setter("password", password)
         if per_dial_timeout is None:
             per_dial_timeout = 15
         if per_dial_timeout is not None:
-            pulumi.set(__self__, "per_dial_timeout", per_dial_timeout)
+            _setter("per_dial_timeout", per_dial_timeout)
         if port is None:
             port = 22
         if port is not None:
-            pulumi.set(__self__, "port", port)
+            _setter("port", port)
         if private_key is not None:
-            pulumi.set(__self__, "private_key", private_key)
+            _setter("private_key", private_key)
         if private_key_password is not None:
-            pulumi.set(__self__, "private_key_password", private_key_password)
+            _setter("private_key_password", private_key_password)
         if proxy is not None:
-            pulumi.set(__self__, "proxy", proxy)
+            _setter("proxy", proxy)
         if user is None:
             user = 'root'
         if user is not None:
-            pulumi.set(__self__, "user", user)
+            _setter("user", user)
 
     @property
     @pulumi.getter
@@ -139,7 +180,7 @@ class Connection(dict):
 
     @property
     @pulumi.getter
-    def port(self) -> Optional[float]:
+    def port(self) -> Optional[int]:
         """
         The port to connect to.
         """
@@ -214,7 +255,7 @@ class ProxyConnection(dict):
                  dial_error_limit: Optional[int] = None,
                  password: Optional[str] = None,
                  per_dial_timeout: Optional[int] = None,
-                 port: Optional[float] = None,
+                 port: Optional[int] = None,
                  private_key: Optional[str] = None,
                  private_key_password: Optional[str] = None,
                  user: Optional[str] = None):
@@ -225,36 +266,75 @@ class ProxyConnection(dict):
         :param int dial_error_limit: Max allowed errors on trying to dial the remote host. -1 set count to unlimited. Default value is 10.
         :param str password: The password we should use for the connection to the bastion host.
         :param int per_dial_timeout: Max number of seconds for each dial attempt. 0 implies no maximum. Default value is 15 seconds.
-        :param float port: The port of the bastion host to connect to.
+        :param int port: The port of the bastion host to connect to.
         :param str private_key: The contents of an SSH key to use for the connection. This takes preference over the password if provided.
         :param str private_key_password: The password to use in case the private key is encrypted.
         :param str user: The user that we should use for the connection to the bastion host.
         """
-        pulumi.set(__self__, "host", host)
+        ProxyConnection._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            host=host,
+            agent_socket_path=agent_socket_path,
+            dial_error_limit=dial_error_limit,
+            password=password,
+            per_dial_timeout=per_dial_timeout,
+            port=port,
+            private_key=private_key,
+            private_key_password=private_key_password,
+            user=user,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             host: Optional[str] = None,
+             agent_socket_path: Optional[str] = None,
+             dial_error_limit: Optional[int] = None,
+             password: Optional[str] = None,
+             per_dial_timeout: Optional[int] = None,
+             port: Optional[int] = None,
+             private_key: Optional[str] = None,
+             private_key_password: Optional[str] = None,
+             user: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions] = None,
+             **kwargs):
+        if host is None:
+            raise TypeError("Missing 'host' argument")
+        if agent_socket_path is None and 'agentSocketPath' in kwargs:
+            agent_socket_path = kwargs['agentSocketPath']
+        if dial_error_limit is None and 'dialErrorLimit' in kwargs:
+            dial_error_limit = kwargs['dialErrorLimit']
+        if per_dial_timeout is None and 'perDialTimeout' in kwargs:
+            per_dial_timeout = kwargs['perDialTimeout']
+        if private_key is None and 'privateKey' in kwargs:
+            private_key = kwargs['privateKey']
+        if private_key_password is None and 'privateKeyPassword' in kwargs:
+            private_key_password = kwargs['privateKeyPassword']
+
+        _setter("host", host)
         if agent_socket_path is not None:
-            pulumi.set(__self__, "agent_socket_path", agent_socket_path)
+            _setter("agent_socket_path", agent_socket_path)
         if dial_error_limit is None:
             dial_error_limit = 10
         if dial_error_limit is not None:
-            pulumi.set(__self__, "dial_error_limit", dial_error_limit)
+            _setter("dial_error_limit", dial_error_limit)
         if password is not None:
-            pulumi.set(__self__, "password", password)
+            _setter("password", password)
         if per_dial_timeout is None:
             per_dial_timeout = 15
         if per_dial_timeout is not None:
-            pulumi.set(__self__, "per_dial_timeout", per_dial_timeout)
+            _setter("per_dial_timeout", per_dial_timeout)
         if port is None:
             port = 22
         if port is not None:
-            pulumi.set(__self__, "port", port)
+            _setter("port", port)
         if private_key is not None:
-            pulumi.set(__self__, "private_key", private_key)
+            _setter("private_key", private_key)
         if private_key_password is not None:
-            pulumi.set(__self__, "private_key_password", private_key_password)
+            _setter("private_key_password", private_key_password)
         if user is None:
             user = 'root'
         if user is not None:
-            pulumi.set(__self__, "user", user)
+            _setter("user", user)
 
     @property
     @pulumi.getter
@@ -298,7 +378,7 @@ class ProxyConnection(dict):
 
     @property
     @pulumi.getter
-    def port(self) -> Optional[float]:
+    def port(self) -> Optional[int]:
         """
         The port of the bastion host to connect to.
         """

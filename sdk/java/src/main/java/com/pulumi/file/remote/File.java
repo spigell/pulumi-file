@@ -38,6 +38,20 @@ public class File extends com.pulumi.resources.CustomResource {
         return this.connection;
     }
     /**
+     * The content of file
+     * 
+     */
+    @Export(name="content", refs={String.class}, tree="[0]")
+    private Output</* @Nullable */ String> content;
+
+    /**
+     * @return The content of file
+     * 
+     */
+    public Output<Optional<String>> content() {
+        return Codegen.optional(this.content);
+    }
+    /**
      * The md5sum of the uploaded file
      * 
      */
@@ -80,18 +94,18 @@ public class File extends com.pulumi.resources.CustomResource {
         return Codegen.optional(this.permissions);
     }
     /**
-     * The content of file
+     * sudo mode requires a external sftp server to be running on remote host
      * 
      */
-    @Export(name="stdin", refs={String.class}, tree="[0]")
-    private Output</* @Nullable */ String> stdin;
+    @Export(name="sftpPath", refs={String.class}, tree="[0]")
+    private Output</* @Nullable */ String> sftpPath;
 
     /**
-     * @return The content of file
+     * @return sudo mode requires a external sftp server to be running on remote host
      * 
      */
-    public Output<Optional<String>> stdin() {
-        return Codegen.optional(this.stdin);
+    public Output<Optional<String>> sftpPath() {
+        return Codegen.optional(this.sftpPath);
     }
     /**
      * Trigger replacements on changes to this input.
@@ -120,20 +134,6 @@ public class File extends com.pulumi.resources.CustomResource {
      */
     public Output<Optional<Boolean>> useSudo() {
         return Codegen.optional(this.useSudo);
-    }
-    /**
-     * if sudo enabled will use this directory for temporary copy command
-     * 
-     */
-    @Export(name="writebleDirectoryForSudoMode", refs={String.class}, tree="[0]")
-    private Output</* @Nullable */ String> writebleDirectoryForSudoMode;
-
-    /**
-     * @return if sudo enabled will use this directory for temporary copy command
-     * 
-     */
-    public Output<Optional<String>> writebleDirectoryForSudoMode() {
-        return Codegen.optional(this.writebleDirectoryForSudoMode);
     }
 
     /**

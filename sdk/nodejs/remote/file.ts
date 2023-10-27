@@ -41,6 +41,10 @@ export class File extends pulumi.CustomResource {
      */
     public readonly connection!: pulumi.Output<outputs.remote.Connection>;
     /**
+     * The content of file
+     */
+    public readonly content!: pulumi.Output<string | undefined>;
+    /**
      * The md5sum of the uploaded file
      */
     public /*out*/ readonly md5sum!: pulumi.Output<string>;
@@ -53,9 +57,9 @@ export class File extends pulumi.CustomResource {
      */
     public readonly permissions!: pulumi.Output<string | undefined>;
     /**
-     * The content of file
+     * sudo mode requires a external sftp server to be running on remote host
      */
-    public readonly stdin!: pulumi.Output<string | undefined>;
+    public readonly sftpPath!: pulumi.Output<string | undefined>;
     /**
      * Trigger replacements on changes to this input.
      */
@@ -64,10 +68,6 @@ export class File extends pulumi.CustomResource {
      * if enabled then use sudo for copy command instead of direct copy
      */
     public readonly useSudo!: pulumi.Output<boolean | undefined>;
-    /**
-     * if sudo enabled will use this directory for temporary copy command
-     */
-    public readonly writebleDirectoryForSudoMode!: pulumi.Output<string | undefined>;
 
     /**
      * Create a File resource with the given unique name, arguments, and options.
@@ -87,22 +87,22 @@ export class File extends pulumi.CustomResource {
                 throw new Error("Missing required property 'path'");
             }
             resourceInputs["connection"] = args?.connection ? pulumi.secret((args.connection ? pulumi.output(args.connection).apply(inputs.remote.connectionArgsProvideDefaults) : undefined)) : undefined;
+            resourceInputs["content"] = args ? args.content : undefined;
             resourceInputs["path"] = args ? args.path : undefined;
-            resourceInputs["permissions"] = args ? args.permissions : undefined;
-            resourceInputs["stdin"] = args ? args.stdin : undefined;
+            resourceInputs["permissions"] = (args ? args.permissions : undefined) ?? "0664";
+            resourceInputs["sftpPath"] = (args ? args.sftpPath : undefined) ?? "/usr/lib/ssh/sftp-server";
             resourceInputs["triggers"] = args ? args.triggers : undefined;
             resourceInputs["useSudo"] = args ? args.useSudo : undefined;
-            resourceInputs["writebleDirectoryForSudoMode"] = args ? args.writebleDirectoryForSudoMode : undefined;
             resourceInputs["md5sum"] = undefined /*out*/;
         } else {
             resourceInputs["connection"] = undefined /*out*/;
+            resourceInputs["content"] = undefined /*out*/;
             resourceInputs["md5sum"] = undefined /*out*/;
             resourceInputs["path"] = undefined /*out*/;
             resourceInputs["permissions"] = undefined /*out*/;
-            resourceInputs["stdin"] = undefined /*out*/;
+            resourceInputs["sftpPath"] = undefined /*out*/;
             resourceInputs["triggers"] = undefined /*out*/;
             resourceInputs["useSudo"] = undefined /*out*/;
-            resourceInputs["writebleDirectoryForSudoMode"] = undefined /*out*/;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
         const secretOpts = { additionalSecretOutputs: ["connection"] };
@@ -120,6 +120,10 @@ export interface FileArgs {
      */
     connection: pulumi.Input<inputs.remote.ConnectionArgs>;
     /**
+     * The content of file
+     */
+    content?: pulumi.Input<string>;
+    /**
      * The path for file on remote server
      */
     path: pulumi.Input<string>;
@@ -128,9 +132,9 @@ export interface FileArgs {
      */
     permissions?: pulumi.Input<string>;
     /**
-     * The content of file
+     * sudo mode requires a external sftp server to be running on remote host
      */
-    stdin?: pulumi.Input<string>;
+    sftpPath?: pulumi.Input<string>;
     /**
      * Trigger replacements on changes to this input.
      */
@@ -139,8 +143,4 @@ export interface FileArgs {
      * if enabled then use sudo for copy command instead of direct copy
      */
     useSudo?: pulumi.Input<boolean>;
-    /**
-     * if sudo enabled will use this directory for temporary copy command
-     */
-    writebleDirectoryForSudoMode?: pulumi.Input<string>;
 }
