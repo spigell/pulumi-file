@@ -40,11 +40,11 @@ func NewProvider() p.Provider {
 				"category/utility",
 				"kind/native",
 			},
-			Homepage:   "https://pulumi.com",
-			License:    "Apache-2.0",
-			Repository: "https://github.com/spigell/pulumi-file",
-			Publisher:  "spigell",
-                        PluginDownloadURL: "github://api.github.com/spigell/pulumi-file",
+			Homepage:          "https://pulumi.com",
+			License:           "Apache-2.0",
+			Repository:        "https://github.com/spigell/pulumi-file",
+			Publisher:         "spigell",
+			PluginDownloadURL: "github://api.github.com/spigell/pulumi-file",
 			LanguageMap: map[string]any{
 				"csharp": map[string]any{
 					"packageReferences": map[string]string{
@@ -56,6 +56,7 @@ func NewProvider() p.Provider {
 					"importBasePath":                 "github.com/spigell/pulumi-file/sdk/go/file",
 				},
 				"nodejs": map[string]any{
+					"packageName": "@spigell/pulumi-file",
 					"dependencies": map[string]string{
 						"@pulumi/pulumi": "^3.0.0",
 					},

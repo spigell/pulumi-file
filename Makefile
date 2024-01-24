@@ -3,7 +3,7 @@ PROJECT_NAME := Pulumi File Resource Provider
 PACK             := file
 PACKDIR          := sdk
 PROJECT          := github.com/spigell/pulumi-file
-NODE_MODULE_NAME := @spigell/file
+NODE_MODULE_NAME := @spigell/pulumi-file
 NUGET_PKG_NAME   := Pulumi.Command
 
 PROVIDER        := pulumi-resource-${PACK}
